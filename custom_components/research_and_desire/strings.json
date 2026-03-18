@@ -1,0 +1,69 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Research and Desire",
+        "description": "Enter your API key from the Research and Desire dashboard (Settings > API Keys). Requires an Ultra subscription.",
+        "data": {
+          "api_key": "API Key"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid API key or insufficient subscription tier.",
+      "cannot_connect": "Unable to connect to the Research and Desire API.",
+      "unknown": "An unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This account is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "session_status": {
+        "name": "Latest Session Status"
+      },
+      "session_grade": {
+        "name": "Latest Session Grade"
+      },
+      "session_points": {
+        "name": "Latest Session Points"
+      },
+      "session_date": {
+        "name": "Latest Session Date"
+      },
+      "session_segments": {
+        "name": "Latest Session Segments"
+      },
+      "session_duration": {
+        "name": "Latest Session Duration"
+      },
+      "device_software_version": {
+        "name": "Device Software Version"
+      },
+      "device_last_seen": {
+        "name": "Device Last Seen"
+      },
+      "active_template": {
+        "name": "Active Template"
+      },
+      "target_depth": {
+        "name": "Target Depth"
+      }
+    },
+    "event": {
+      "session_completed": {
+        "name": "Session Completed",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "session_passed": "Session Passed",
+              "session_failed": "Session Failed",
+              "session_completed": "Session Completed"
+            }
+          }
+        }
+      }
+    }
+  }
+}
