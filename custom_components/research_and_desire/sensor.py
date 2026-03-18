@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import logging
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -23,12 +24,37 @@ from .const import DOMAIN
 from .coordinator import ResearchAndDesireCoordinator, ResearchAndDesireData
 
 
+_SEGMENT_KEYS = (
+    "TrainerSegment", "trainerSegment", "trainer_segment",
+    "Segment", "segment", "Segments", "segments",
+    "segment_results", "segmentResults", "results",
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+
 @dataclass(frozen=True, kw_only=True)
 class ResearchAndDesireSensorDescription(SensorEntityDescription):
     """Describe a Research and Desire sensor."""
 
     value_fn: Callable[[ResearchAndDesireData], Any]
     attr_fn: Callable[[ResearchAndDesireData], dict[str, Any]] | None = None
+
+
+def _get_segments(detail: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """Extract segment list from session detail, trying all possible keys."""
+    if not detail or not isinstance(detail, dict):
+        return []
+    for key in _SEGMENT_KEYS:
+        val = detail.get(key)
+        if isinstance(val, list) and val:
+            return val
+    # Last resort: find any list of dicts in the response
+    for key, val in detail.items():
+        if isinstance(val, list) and val and isinstance(val[0], dict) and "points" in val[0]:
+            _LOGGER.debug("Found segments under unexpected key '%s'", key)
+            return val
+    return []
 
 
 def _session_status(data: ResearchAndDesireData) -> str | None:
@@ -43,10 +69,7 @@ def _session_status(data: ResearchAndDesireData) -> str | None:
 
 
 def _session_grade(data: ResearchAndDesireData) -> float | None:
-    detail = data.session_detail
-    if not detail:
-        return None
-    segments = detail.get("TrainerSegment") or detail.get("trainerSegment") or []
+    segments = _get_segments(data.session_detail)
     if not segments:
         return None
     grades = [s["percentGrade"] for s in segments if s.get("percentGrade") is not None]
@@ -56,10 +79,7 @@ def _session_grade(data: ResearchAndDesireData) -> float | None:
 
 
 def _session_points(data: ResearchAndDesireData) -> int | None:
-    detail = data.session_detail
-    if not detail:
-        return None
-    segments = detail.get("TrainerSegment") or detail.get("trainerSegment") or []
+    segments = _get_segments(data.session_detail)
     if not segments:
         return None
     return sum(s.get("points", 0) for s in segments)
@@ -87,18 +107,14 @@ def _session_date(data: ResearchAndDesireData) -> datetime | None:
 
 
 def _session_segment_count(data: ResearchAndDesireData) -> int | None:
-    detail = data.session_detail
-    if not detail:
+    segments = _get_segments(data.session_detail)
+    if not segments:
         return None
-    segments = detail.get("TrainerSegment") or detail.get("trainerSegment") or []
     return len(segments)
 
 
 def _session_duration(data: ResearchAndDesireData) -> float | None:
-    detail = data.session_detail
-    if not detail:
-        return None
-    segments = detail.get("TrainerSegment") or detail.get("trainerSegment") or []
+    segments = _get_segments(data.session_detail)
     if not segments:
         return None
     return sum(s.get("durationMeasured", 0) for s in segments)
@@ -129,10 +145,9 @@ def _target_depth(data: ResearchAndDesireData) -> float | None:
 
 
 def _session_grade_attrs(data: ResearchAndDesireData) -> dict[str, Any]:
-    detail = data.session_detail
-    if not detail:
+    segments = _get_segments(data.session_detail)
+    if not segments:
         return {}
-    segments = detail.get("TrainerSegment") or detail.get("trainerSegment") or []
     return {
         "segment_grades": [
             {"order": s.get("order"), "grade": s.get("percentGrade"), "type": s.get("type")}
@@ -142,10 +157,9 @@ def _session_grade_attrs(data: ResearchAndDesireData) -> dict[str, Any]:
 
 
 def _session_points_attrs(data: ResearchAndDesireData) -> dict[str, Any]:
-    detail = data.session_detail
-    if not detail:
+    segments = _get_segments(data.session_detail)
+    if not segments:
         return {}
-    segments = detail.get("TrainerSegment") or detail.get("trainerSegment") or []
     return {
         "segment_points": [
             {"order": s.get("order"), "points": s.get("points"), "type": s.get("type")}

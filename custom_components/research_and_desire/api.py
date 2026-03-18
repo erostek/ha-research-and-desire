@@ -107,14 +107,9 @@ class ResearchAndDesireApiClient:
 
     async def async_get_session(self, session_id: int) -> dict[str, Any] | None:
         """Get a single DTT session with full segment detail."""
-        try:
-            result = await self._request("GET", f"/dtt/sessions/{session_id}")
-            if isinstance(result, dict) and "session" in result:
-                return result["session"]
-            return result
-        except ApiError as err:
-            _LOGGER.warning("Could not fetch session %s: %s", session_id, err)
-            return None
+        result = await self._request("GET", f"/dtt/sessions/{session_id}")
+        _LOGGER.debug("Session %s detail: %s", session_id, result)
+        return result
 
     async def async_get_active_template(self) -> dict[str, Any] | None:
         """Get the currently active DTT training template."""

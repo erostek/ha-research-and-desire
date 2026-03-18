@@ -76,7 +76,8 @@ class ResearchAndDesireSessionEvent(
         passed = session.get("passed")
 
         # Compute event data from segments
-        segments = detail.get("TrainerSegment") or detail.get("trainerSegment") or []
+        from .sensor import _get_segments
+        segments = _get_segments(detail)
         total_points = sum(s.get("points", 0) for s in segments)
         grades = [s["percentGrade"] for s in segments if s.get("percentGrade") is not None]
         average_grade = round(sum(grades) / len(grades), 1) if grades else None

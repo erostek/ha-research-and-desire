@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass, field
 from datetime import timedelta
 import logging
@@ -44,48 +43,36 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
         self._first_poll = True
 
     async def _async_update_data(self) -> ResearchAndDesireData:
-        """Fetch data from the API."""
-        # Fetch all endpoints in parallel, isolating failures
-        results = await asyncio.gather(
-            self.client.async_get_latest_session(),
-            self.client.async_get_devices(),
-            self.client.async_get_active_template(),
-            return_exceptions=True,
-        )
-
-        # Check for auth failures first
-        for result in results:
-            if isinstance(result, AuthenticationError):
-                raise ConfigEntryAuthFailed(str(result)) from result
-
-        # Unpack results, falling back to previous data or defaults on failure
+        """Fetch data from the API sequentially."""
         prev = self.data
 
-        if isinstance(results[0], BaseException):
-            _LOGGER.warning("Failed to fetch latest session: %s", results[0])
+        # Fetch endpoints sequentially to avoid API rate issues
+        try:
+            latest_session = await self.client.async_get_latest_session()
+        except AuthenticationError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except ApiError as err:
+            _LOGGER.warning("Failed to fetch latest session: %s", err)
             latest_session = prev.latest_session if prev else None
-        else:
-            latest_session = results[0]
 
-        if isinstance(results[1], BaseException):
-            _LOGGER.warning("Failed to fetch devices: %s", results[1])
+        try:
+            devices = await self.client.async_get_devices()
+        except AuthenticationError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except ApiError as err:
+            _LOGGER.warning("Failed to fetch devices: %s", err)
             devices = prev.devices if prev else []
-        else:
-            devices = results[1] if isinstance(results[1], list) else []
 
-        if isinstance(results[2], BaseException):
-            _LOGGER.warning("Failed to fetch active template: %s", results[2])
+        try:
+            active_template = await self.client.async_get_active_template()
+        except AuthenticationError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except ApiError as err:
+            _LOGGER.warning("Failed to fetch active template: %s", err)
             active_template = prev.active_template if prev else None
-        else:
-            active_template = results[2]
-
-        # If ALL three failed (not auth), raise UpdateFailed
-        all_failed = all(isinstance(r, BaseException) for r in results)
-        if all_failed:
-            raise UpdateFailed("All API endpoints failed")
 
         _LOGGER.debug(
-            "Poll result: session=%s, devices=%d, template=%s",
+            "Poll: session=%s, devices=%d, template=%s",
             latest_session.get("id") if isinstance(latest_session, dict) else None,
             len(devices),
             active_template.get("name") if isinstance(active_template, dict) else None,
@@ -101,15 +88,13 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
 
         if current_session_id is not None:
             if self._first_poll:
-                # First poll — record ID, fetch detail, but don't fire event
                 self._first_poll = False
                 self._last_session_id = current_session_id
-                session_detail = await self.client.async_get_session(current_session_id)
+                session_detail = await self._fetch_session_detail(current_session_id)
             elif current_session_id != self._last_session_id:
-                # New session detected
                 self._last_session_id = current_session_id
                 new_session_completed = True
-                session_detail = await self.client.async_get_session(current_session_id)
+                session_detail = await self._fetch_session_detail(current_session_id)
             else:
                 # Same session — reuse previous detail
                 if prev and prev.session_detail:
@@ -124,3 +109,18 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
             active_template=active_template,
             new_session_completed=new_session_completed,
         )
+
+    async def _fetch_session_detail(self, session_id: int) -> dict[str, Any] | None:
+        """Fetch session detail with error handling."""
+        try:
+            detail = await self.client.async_get_session(session_id)
+            if detail:
+                _LOGGER.debug("Session detail keys: %s", list(detail.keys()) if isinstance(detail, dict) else type(detail))
+            else:
+                _LOGGER.warning("Session detail for %s returned empty", session_id)
+            return detail
+        except AuthenticationError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except ApiError as err:
+            _LOGGER.warning("Could not fetch session detail %s: %s", session_id, err)
+            return None
