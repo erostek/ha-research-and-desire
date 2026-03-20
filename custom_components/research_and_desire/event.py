@@ -40,7 +40,7 @@ class ResearchAndDesireSessionEvent(
     """Event entity that fires when a DTT session completes."""
 
     _attr_has_entity_name = True
-    _attr_name = "Session Completed"
+    _attr_translation_key = "session_completed"
     _attr_event_types = [
         EVENT_SESSION_PASSED,
         EVENT_SESSION_FAILED,

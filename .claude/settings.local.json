@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(pip list:*)",
+      "Bash(uv --version)",
+      "Bash(npx --version)",
+      "Bash(mkdir -p \"D:\\\\_workspace\\\\privat\\\\ha-research-and-desire\\\\mcp-ha-server\")",
+      "Bash(npm init:*)",
+      "Skill(update-config)",
+      "Bash(python -c \"import sys,json; entries=json.load\\(sys.stdin\\); rd=[e for e in entries if e.get\\(''''domain''''\\)==''''research_and_desire'''']; print\\(json.dumps\\(rd, indent=2\\)\\)\")"
+    ]
+  }
+}

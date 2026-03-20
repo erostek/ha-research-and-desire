@@ -44,6 +44,19 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
 
     async def _async_update_data(self) -> ResearchAndDesireData:
         """Fetch data from the API sequentially."""
+        try:
+            return await self._do_update()
+        except (ConfigEntryAuthFailed, UpdateFailed):
+            raise
+        except Exception as err:
+            # Catch unexpected errors to prevent the coordinator from dying
+            _LOGGER.error("Unexpected error during update: %s", err, exc_info=True)
+            if self.data:
+                return self.data
+            raise UpdateFailed(f"Unexpected error: {err}") from err
+
+    async def _do_update(self) -> ResearchAndDesireData:
+        """Perform the actual data update."""
         prev = self.data
 
         # Fetch endpoints sequentially to avoid API rate issues
