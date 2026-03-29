@@ -1,0 +1,63 @@
+blueprint:
+  name: "R&D: Missed Training Punishment"
+  description: >
+    If no training session is completed by the deadline, activate a
+    punishment scene and send a shaming notification. Pair with the
+    Lockbox to enforce consequences — e.g. extend lock time or
+    disable breaks when training is missed.
+  domain: automation
+  input:
+    session_date_entity:
+      name: Session Date Sensor
+      description: The DTT "Latest Session Date" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+              device_class: timestamp
+    deadline_time:
+      name: Training Deadline
+      description: Time by which training must be completed
+      default: "21:00:00"
+      selector:
+        time:
+    punishment_scene:
+      name: Punishment Scene
+      description: Scene to activate when training is missed
+      selector:
+        entity:
+          filter:
+            - domain: scene
+    notify_service:
+      name: Notification Service
+      default: notify.notify
+      selector:
+        text:
+    punishment_message:
+      name: Punishment Message
+      default: "Training deadline missed. Punishment activated."
+      selector:
+        text:
+
+trigger:
+  - trigger: time
+    at: !input deadline_time
+
+condition:
+  - condition: template
+    value_template: >
+      {% set s = states(session_entity) %}
+      {{ s in ['unavailable', 'unknown']
+         or as_timestamp(s) < as_timestamp(today_at('00:00')) }}
+    variables:
+      session_entity: !input session_date_entity
+
+action:
+  - action: scene.turn_on
+    target:
+      entity_id: !input punishment_scene
+  - action: !input notify_service
+    data:
+      title: "Missed Training"
+      message: !input punishment_message

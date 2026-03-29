@@ -1,0 +1,67 @@
+blueprint:
+  name: "R&D: Lockbox DTT Training Reward Unlock"
+  description: >
+    When a DTT session is passed with a grade above the threshold,
+    send a notification congratulating the user. Pair this with
+    the Lockbox DTT integration (deepthroatTimeReduction) for
+    automatic lock time reduction as a training reward.
+  domain: automation
+  input:
+    session_event_entity:
+      name: Session Completed Event
+      description: The DTT "Session Completed" event entity
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: event
+    grade_threshold:
+      name: Minimum Grade for Reward (%)
+      description: Only reward sessions with a grade at or above this threshold
+      default: 80
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 5
+          unit_of_measurement: "%"
+    notify_service:
+      name: Notification Service
+      default: notify.notify
+      selector:
+        text:
+    reward_message:
+      name: Reward Message
+      default: "Great session! Your Lockbox time has been reduced as a reward."
+      selector:
+        text:
+    punishment_message:
+      name: Below Threshold Message
+      default: "Session passed but grade too low for a reward. Train harder."
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input session_event_entity
+    attribute: event_type
+    to: "session_passed"
+
+action:
+  - variables:
+      grade: "{{ trigger.to_state.attributes.average_grade | float(0) }}"
+      threshold: !input grade_threshold
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ grade >= threshold }}"
+        sequence:
+          - action: !input notify_service
+            data:
+              title: "Training Reward!"
+              message: !input reward_message
+    default:
+      - action: !input notify_service
+        data:
+          title: "Not Enough"
+          message: !input punishment_message

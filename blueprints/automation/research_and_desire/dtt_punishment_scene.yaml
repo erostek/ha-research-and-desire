@@ -1,0 +1,57 @@
+blueprint:
+  name: "R&D: DTT Punishment — Activate Scene on Fail"
+  description: >
+    Activate a punishment scene when a DTT session is failed.
+    Use this to change lighting, trigger media, send a shaming
+    notification, or any other consequence for a failed session.
+  domain: automation
+  input:
+    session_event_entity:
+      name: Session Completed Event
+      description: The DTT "Session Completed" event entity
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: event
+    punishment_scene:
+      name: Punishment Scene
+      description: The scene to activate when a session is failed
+      selector:
+        entity:
+          filter:
+            - domain: scene
+    notify_service:
+      name: Notification Service (optional)
+      description: Send a shaming notification on failure. Leave default to skip.
+      default: ""
+      selector:
+        text:
+    shame_message:
+      name: Shame Message
+      description: Message to send on failure
+      default: "You failed your training. Try harder next time."
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input session_event_entity
+    attribute: event_type
+    to: "session_failed"
+
+action:
+  - action: scene.turn_on
+    target:
+      entity_id: !input punishment_scene
+  - variables:
+      notify_svc: !input notify_service
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ notify_svc != '' }}"
+        sequence:
+          - action: "{{ notify_svc }}"
+            data:
+              title: "DTT Session Failed"
+              message: !input shame_message

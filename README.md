@@ -146,6 +146,54 @@ Automatically turn on a light or switch when the Lockbox is unlocked, and turn i
 
 [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_break_light.yaml)
 
+### DTT Reward — Scene on Pass
+
+Activate a reward scene (mood lighting, music, etc.) when a DTT session is passed.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_reward_scene.yaml)
+
+### DTT Punishment — Scene on Fail
+
+Activate a punishment scene and send a shaming notification when a DTT session is failed.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_punishment_scene.yaml)
+
+### DTT Tiered Grade Response
+
+Run different scenes based on grade tiers — excellent, acceptable, or poor. Configurable thresholds for reward/neutral/punishment responses.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_grade_tiered_response.yaml)
+
+### Missed Training Punishment
+
+Activate a punishment scene and send a notification if no training is completed by the deadline.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_missed_training_punishment.yaml)
+
+### Lockbox DTT Training Reward
+
+Congratulate and notify when a DTT session is passed above a grade threshold. Pairs with Lockbox's built-in deepthroat time reduction feature.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_dtt_unlock_reward.yaml)
+
+### Lockbox Controls Smart Devices
+
+Turn off devices (TV, gaming, lights) when locked, turn them back on when unlocked. Enforce restricted access to privileges.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_lock_smart_devices.yaml)
+
+### Lockbox Timed Unlock Reminder
+
+Send warning and final notifications during Lockbox break time to enforce time limits.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_timed_unlock_reminder.yaml)
+
+### Lockbox Shame Announcement
+
+Announce lock/unlock status on a smart speaker via TTS. Use as a humiliation element.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_shame_announcement.yaml)
+
 ## API Documentation
 
 This integration uses the [Research and Desire API](https://docs.researchanddesire.com/dashboard/api/introduction).

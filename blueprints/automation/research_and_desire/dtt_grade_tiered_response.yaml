@@ -1,0 +1,90 @@
+blueprint:
+  name: "R&D: DTT Tiered Grade Response"
+  description: >
+    Run different actions based on the session grade tier.
+    Define three scenes for excellent (A), acceptable (B), and
+    poor (C/fail) grades. Thresholds are configurable.
+  domain: automation
+  input:
+    grade_entity:
+      name: Session Grade Sensor
+      description: The DTT "Latest Session Grade" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    excellent_threshold:
+      name: Excellent Threshold (%)
+      description: Grades at or above this are excellent
+      default: 90
+      selector:
+        number:
+          min: 50
+          max: 100
+          step: 5
+          unit_of_measurement: "%"
+    acceptable_threshold:
+      name: Acceptable Threshold (%)
+      description: Grades between this and excellent are acceptable. Below this is poor.
+      default: 70
+      selector:
+        number:
+          min: 20
+          max: 100
+          step: 5
+          unit_of_measurement: "%"
+    excellent_scene:
+      name: Excellent Scene
+      description: Scene for excellent grades (reward)
+      selector:
+        entity:
+          filter:
+            - domain: scene
+    acceptable_scene:
+      name: Acceptable Scene
+      description: Scene for acceptable grades (neutral)
+      selector:
+        entity:
+          filter:
+            - domain: scene
+    poor_scene:
+      name: Poor Scene
+      description: Scene for poor grades (punishment)
+      selector:
+        entity:
+          filter:
+            - domain: scene
+
+trigger:
+  - trigger: state
+    entity_id: !input grade_entity
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.to_state.state not in ['unavailable', 'unknown'] }}"
+
+action:
+  - variables:
+      grade: "{{ trigger.to_state.state | float(0) }}"
+      excellent: !input excellent_threshold
+      acceptable: !input acceptable_threshold
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ grade >= excellent }}"
+        sequence:
+          - action: scene.turn_on
+            target:
+              entity_id: !input excellent_scene
+      - conditions:
+          - condition: template
+            value_template: "{{ grade >= acceptable }}"
+        sequence:
+          - action: scene.turn_on
+            target:
+              entity_id: !input acceptable_scene
+    default:
+      - action: scene.turn_on
+        target:
+          entity_id: !input poor_scene

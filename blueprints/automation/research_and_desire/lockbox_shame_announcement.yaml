@@ -1,0 +1,61 @@
+blueprint:
+  name: "R&D: Lockbox Shame Announcement"
+  description: >
+    When the Lockbox is locked, announce it on a media player or smart
+    speaker. Can be used as a humiliation element — announce the lock
+    status to the household via TTS.
+  domain: automation
+  input:
+    lock_status_entity:
+      name: Lock Status Sensor
+      description: The Lockbox "Lock Status" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    media_player:
+      name: Media Player / Speaker
+      description: The device to make the announcement on
+      selector:
+        entity:
+          filter:
+            - domain: media_player
+    lock_message:
+      name: Lock Announcement
+      default: "The Lockbox has been locked. No access until the timer expires."
+      selector:
+        text:
+    unlock_message:
+      name: Unlock Announcement
+      default: "The Lockbox has been unlocked. Break time has started."
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input lock_status_entity
+
+condition:
+  - condition: template
+    value_template: >
+      {{ trigger.from_state.state in ['Locked', 'Unlocked']
+         and trigger.to_state.state in ['Locked', 'Unlocked']
+         and trigger.from_state.state != trigger.to_state.state }}
+
+action:
+  - variables:
+      message: >
+        {% if trigger.to_state.state == 'Locked' %}
+        {{ lock_msg }}
+        {% else %}
+        {{ unlock_msg }}
+        {% endif %}
+      lock_msg: !input lock_message
+      unlock_msg: !input unlock_message
+  - action: tts.speak
+    target:
+      entity_id: !input media_player
+    data:
+      message: "{{ message }}"
+      media_player_entity_id: !input media_player

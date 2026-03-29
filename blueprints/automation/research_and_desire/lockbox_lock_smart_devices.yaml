@@ -1,0 +1,53 @@
+blueprint:
+  name: "R&D: Lockbox Controls Smart Devices"
+  description: >
+    Use the Lockbox lock state to control any smart devices in your home.
+    When locked, turn off selected devices (TV, gaming console, lights).
+    When unlocked, turn them back on. Enforces restricted access to
+    entertainment or other privileges while the Lockbox is active.
+  domain: automation
+  input:
+    lock_status_entity:
+      name: Lock Status Sensor
+      description: The Lockbox "Lock Status" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    controlled_devices:
+      name: Controlled Devices
+      description: Devices to turn off when locked and on when unlocked
+      selector:
+        target:
+          entity:
+            - domain:
+                - switch
+                - light
+                - media_player
+
+trigger:
+  - trigger: state
+    entity_id: !input lock_status_entity
+
+condition:
+  - condition: template
+    value_template: >
+      {{ trigger.to_state.state in ['Locked', 'Unlocked']
+         and trigger.from_state.state in ['Locked', 'Unlocked']
+         and trigger.from_state.state != trigger.to_state.state }}
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'Locked' }}"
+        sequence:
+          - action: homeassistant.turn_off
+            target: !input controlled_devices
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'Unlocked' }}"
+        sequence:
+          - action: homeassistant.turn_on
+            target: !input controlled_devices

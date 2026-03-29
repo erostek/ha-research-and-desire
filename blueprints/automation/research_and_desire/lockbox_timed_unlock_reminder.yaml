@@ -1,0 +1,69 @@
+blueprint:
+  name: "R&D: Lockbox Timed Unlock Reminder"
+  description: >
+    When the Lockbox is unlocked, start a countdown timer. Send a warning
+    notification before time is up, then a final notification when the
+    break window expires. Helps enforce break time limits.
+  domain: automation
+  input:
+    lock_status_entity:
+      name: Lock Status Sensor
+      description: The Lockbox "Lock Status" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    warning_minutes:
+      name: Warning After (minutes)
+      description: Send a warning this many minutes after unlock
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 120
+          step: 1
+          unit_of_measurement: min
+    final_minutes:
+      name: Final Warning After (minutes)
+      description: Send a final "time's up" notification after this many minutes
+      default: 15
+      selector:
+        number:
+          min: 2
+          max: 180
+          step: 1
+          unit_of_measurement: min
+    notify_service:
+      name: Notification Service
+      default: notify.notify
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input lock_status_entity
+    to: "Unlocked"
+
+action:
+  - delay:
+      minutes: !input warning_minutes
+  - condition: state
+    entity_id: !input lock_status_entity
+    state: "Unlocked"
+  - action: !input notify_service
+    data:
+      title: "Lockbox Break Warning"
+      message: "Your break is almost over. Prepare to lock up."
+  - variables:
+      warn_min: !input warning_minutes
+      final_min: !input final_minutes
+  - delay:
+      minutes: "{{ final_min - warn_min }}"
+  - condition: state
+    entity_id: !input lock_status_entity
+    state: "Unlocked"
+  - action: !input notify_service
+    data:
+      title: "Lockbox Break Expired"
+      message: "Break time is up! Lock the Lockbox now."
