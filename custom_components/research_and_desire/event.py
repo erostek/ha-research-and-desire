@@ -12,8 +12,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import ResearchAndDesireConfigEntry
-from .const import DOMAIN
-from .coordinator import ResearchAndDesireCoordinator
+from .const import DOMAIN, PRODUCT_DTT
+from .coordinator import DttDeviceData, ResearchAndDesireCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,11 +27,14 @@ async def async_setup_entry(
     entry: ResearchAndDesireConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Research and Desire event entity."""
+    """Set up Research and Desire event entities."""
     coordinator = entry.runtime_data
-    async_add_entities([
-        ResearchAndDesireSessionEvent(coordinator, entry.entry_id)
-    ])
+    entities = []
+    data = coordinator.data
+    if data:
+        for device_id in data.dtt_devices:
+            entities.append(ResearchAndDesireSessionEvent(coordinator, device_id))
+    async_add_entities(entities)
 
 
 class ResearchAndDesireSessionEvent(
@@ -50,29 +53,38 @@ class ResearchAndDesireSessionEvent(
     def __init__(
         self,
         coordinator: ResearchAndDesireCoordinator,
-        entry_id: str,
+        device_id: int,
     ) -> None:
         super().__init__(coordinator)
-        self._attr_unique_id = f"{entry_id}_session_completed"
+        self._device_id = device_id
+        self._attr_unique_id = f"dtt_{device_id}_session_completed"
+
+        device_data = coordinator.data.dtt_devices.get(device_id) if coordinator.data else None
+        dev_info = device_data.device_info if device_data else {}
+
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry_id)},
-            name="DTT Trainer",
+            identifiers={(DOMAIN, f"dtt_{device_id}")},
+            name="Deepthroat Trainer",
             manufacturer="Research and Desire",
+            model="Deepthroat Trainer",
+            serial_number=dev_info.get("serialNumber"),
+            sw_version=dev_info.get("softwareVersion"),
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if (
-            self.coordinator.data is None
-            or not self.coordinator.data.new_session_completed
-        ):
+        if self.coordinator.data is None:
             super()._handle_coordinator_update()
             return
 
-        data = self.coordinator.data
-        session = data.latest_session or {}
-        detail = data.session_detail or {}
+        device_data: DttDeviceData | None = self.coordinator.data.dtt_devices.get(self._device_id)
+        if device_data is None or not device_data.new_session_completed:
+            super()._handle_coordinator_update()
+            return
+
+        session = device_data.latest_session or {}
+        detail = device_data.session_detail or {}
         passed = session.get("passed")
 
         # Compute event data from segments
@@ -91,7 +103,7 @@ class ResearchAndDesireSessionEvent(
             "created_at": session.get("created_at") or session.get("createdAt"),
         }
 
-        # Fire a single event — specific type when known, generic otherwise
+        # Fire a single event -- specific type when known, generic otherwise
         if passed is True:
             self._trigger_event(EVENT_SESSION_PASSED, event_data)
         elif passed is False:

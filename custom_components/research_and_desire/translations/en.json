@@ -20,36 +20,43 @@
   },
   "entity": {
     "sensor": {
-      "session_status": {
-        "name": "Latest Session Status"
-      },
-      "session_grade": {
-        "name": "Latest Session Grade"
-      },
-      "session_points": {
-        "name": "Latest Session Points"
-      },
-      "session_date": {
-        "name": "Latest Session Date"
-      },
-      "session_segments": {
-        "name": "Latest Session Segments"
-      },
-      "session_duration": {
-        "name": "Latest Session Duration"
-      },
-      "device_software_version": {
-        "name": "Device Software Version"
-      },
-      "device_last_seen": {
-        "name": "Device Last Seen"
-      },
-      "active_template": {
-        "name": "Active Template"
-      },
-      "target_depth": {
-        "name": "Target Depth"
-      }
+      "session_status": { "name": "Latest Session Status" },
+      "session_grade": { "name": "Latest Session Grade" },
+      "session_points": { "name": "Latest Session Points" },
+      "session_date": { "name": "Latest Session Date" },
+      "session_segments": { "name": "Latest Session Segments" },
+      "session_duration": { "name": "Latest Session Duration" },
+      "device_software_version": { "name": "Software Version" },
+      "device_last_seen": { "name": "Last Seen" },
+      "active_template": { "name": "Active Template" },
+      "target_depth": { "name": "Target Depth" },
+      "template_message": { "name": "Template Message" },
+      "template_tagline": { "name": "Template Tagline" },
+      "template_toy_tagline": { "name": "Toy Tagline" },
+      "template_hands_free_mode": { "name": "Hands-Free Mode" },
+      "target_window": { "name": "Target Window" },
+      "template_segment_count": { "name": "Template Segments" },
+      "session_total_distance": { "name": "Session Distance" },
+      "session_longest_deepthroat": { "name": "Longest Deepthroat" },
+      "session_total_reps": { "name": "Session Total Reps" },
+      "session_avg_stroke_length": { "name": "Avg Stroke Length" },
+      "session_avg_speed": { "name": "Avg Speed" },
+      "device_serial_number": { "name": "Serial Number" },
+      "device_last_log": { "name": "Last Log" },
+      "ossm_session_count": { "name": "Session Count" },
+      "ossm_pattern_count": { "name": "Pattern Count" },
+      "ossm_firmware_version": { "name": "Firmware Version" },
+      "ossm_device_last_seen": { "name": "Last Seen" },
+      "lkbx_locked": { "name": "Lock Status" },
+      "lkbx_last_seen": { "name": "Last Seen" },
+      "lkbx_mac_address": { "name": "MAC Address" },
+      "lkbx_active_lock": { "name": "Active Lock" },
+      "lkbx_lock_duration": { "name": "Lock Duration" },
+      "lkbx_break_enabled": { "name": "Breaks Enabled" },
+      "lkbx_emergency_unlock": { "name": "Emergency Unlock" },
+      "lkbx_deepthroat_enabled": { "name": "Deepthroat Enabled" },
+      "lkbx_shame_enabled": { "name": "Shame Enabled" },
+      "lkbx_test_lock": { "name": "Test Lock" }
     },
     "event": {
       "session_completed": {

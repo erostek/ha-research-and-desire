@@ -81,7 +81,11 @@ class ResearchAndDesireApiClient:
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             raise ApiError(f"Connection error: {err}") from err
 
-    async def async_get_devices(self, limit: int | None = None) -> list[dict[str, Any]]:
+    # ------------------------------------------------------------------
+    # DTT (Device Training Tool) methods
+    # ------------------------------------------------------------------
+
+    async def async_get_dtt_devices(self, limit: int | None = None) -> list[dict[str, Any]]:
         """Get DTT devices."""
         params = {}
         if limit is not None:
@@ -89,7 +93,7 @@ class ResearchAndDesireApiClient:
         result = await self._request("GET", "/dtt", params=params or None)
         return _extract_list(result)
 
-    async def async_get_latest_session(self) -> dict[str, Any] | None:
+    async def async_get_dtt_sessions_latest(self) -> dict[str, Any] | None:
         """Get the most recent DTT session (summary, no segments)."""
         try:
             result = await self._request("GET", "/dtt/sessions/latest")
@@ -105,13 +109,13 @@ class ResearchAndDesireApiClient:
             _LOGGER.debug("No latest session available: %s", err)
             return None
 
-    async def async_get_session(self, session_id: int) -> dict[str, Any] | None:
+    async def async_get_dtt_session(self, session_id: int) -> dict[str, Any] | None:
         """Get a single DTT session with full segment detail."""
         result = await self._request("GET", f"/dtt/sessions/{session_id}")
         _LOGGER.debug("Session %s detail: %s", session_id, result)
         return result
 
-    async def async_get_active_template(self) -> dict[str, Any] | None:
+    async def async_get_dtt_templates_active(self) -> dict[str, Any] | None:
         """Get the currently active DTT training template."""
         try:
             result = await self._request("GET", "/dtt/templates/active")
@@ -123,6 +127,135 @@ class ResearchAndDesireApiClient:
         except ApiError as err:
             _LOGGER.debug("No active template: %s", err)
             return None
+
+    # Backward-compatible aliases for DTT methods (transition period)
+    async def async_get_devices(self, limit: int | None = None) -> list[dict[str, Any]]:
+        """Alias for async_get_dtt_devices (backward compat)."""
+        return await self.async_get_dtt_devices(limit=limit)
+
+    async def async_get_latest_session(self) -> dict[str, Any] | None:
+        """Alias for async_get_dtt_sessions_latest (backward compat)."""
+        return await self.async_get_dtt_sessions_latest()
+
+    async def async_get_session(self, session_id: int) -> dict[str, Any] | None:
+        """Alias for async_get_dtt_session (backward compat)."""
+        return await self.async_get_dtt_session(session_id)
+
+    async def async_get_active_template(self) -> dict[str, Any] | None:
+        """Alias for async_get_dtt_templates_active (backward compat)."""
+        return await self.async_get_dtt_templates_active()
+
+    # ------------------------------------------------------------------
+    # OSSM methods
+    # ------------------------------------------------------------------
+
+    async def async_get_ossm_devices(self, limit: int | None = None) -> list[dict[str, Any]]:
+        """Get OSSM devices."""
+        params = {}
+        if limit is not None:
+            params["limit"] = limit
+        try:
+            result = await self._request("GET", "/ossm", params=params or None)
+            return _extract_list(result)
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch OSSM devices: %s", err)
+            return []
+
+    async def async_get_ossm_sessions(self) -> list[dict[str, Any]]:
+        """Get OSSM sessions."""
+        try:
+            result = await self._request("GET", "/ossm/sessions")
+            return _extract_list(result)
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch OSSM sessions: %s", err)
+            return []
+
+    async def async_get_ossm_patterns(self) -> list[dict[str, Any]]:
+        """Get OSSM patterns."""
+        try:
+            result = await self._request("GET", "/ossm/patterns")
+            return _extract_list(result)
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch OSSM patterns: %s", err)
+            return []
+
+    async def async_get_ossm_settings(self) -> dict[str, Any] | None:
+        """Get OSSM settings."""
+        try:
+            return await self._request("GET", "/ossm/settings")
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch OSSM settings: %s", err)
+            return None
+
+    async def async_get_ossm_firmware(self) -> dict[str, Any] | None:
+        """Get OSSM firmware information."""
+        try:
+            return await self._request("GET", "/ossm/firmware")
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch OSSM firmware: %s", err)
+            return None
+
+    # ------------------------------------------------------------------
+    # LKBX (Lockbox) methods
+    # ------------------------------------------------------------------
+
+    async def async_get_lkbx_devices(self, limit: int | None = None) -> list[dict[str, Any]]:
+        """Get Lockbox devices."""
+        params = {}
+        if limit is not None:
+            params["limit"] = limit
+        try:
+            result = await self._request("GET", "/lkbx", params=params or None)
+            return _extract_list(result)
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch LKBX devices: %s", err)
+            return []
+
+    async def async_get_lkbx_sessions(self) -> list[dict[str, Any]]:
+        """Get Lockbox sessions."""
+        try:
+            result = await self._request("GET", "/lkbx/sessions")
+            return _extract_list(result)
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch LKBX sessions: %s", err)
+            return []
+
+    async def async_get_lkbx_sessions_latest(self) -> dict[str, Any] | None:
+        """Get the most recent Lockbox session."""
+        try:
+            result = await self._request("GET", "/lkbx/sessions/latest")
+            return result
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch latest LKBX session: %s", err)
+            return None
+
+    async def async_get_lkbx_templates(self) -> list[dict[str, Any]]:
+        """Get Lockbox templates."""
+        try:
+            result = await self._request("GET", "/lkbx/templates")
+            return _extract_list(result)
+        except ApiError as err:
+            _LOGGER.debug("Could not fetch LKBX templates: %s", err)
+            return []
+
+    async def async_get_lkbx_templates_active(self) -> dict[str, Any] | None:
+        """Get the currently active Lockbox template.
+
+        The API returns {"data": null, "message": "no active lock"} when
+        no lock is active, which our _request method translates to None.
+        """
+        try:
+            result = await self._request("GET", "/lkbx/templates/active")
+            if result is None:
+                return None
+            return result
+        except ApiError as err:
+            _LOGGER.debug("No active LKBX template: %s", err)
+            return None
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
 
     async def async_validate_connection(self) -> bool:
         """Validate the API key by making a lightweight request."""
