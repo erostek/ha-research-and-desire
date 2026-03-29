@@ -259,6 +259,18 @@ Take a camera snapshot whenever the Lockbox state changes and send it via notifi
 
 [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_camera_snapshot.yaml)
 
+## Dashboard Samples
+
+Ready-to-use dashboard YAML — copy into your Raw Configuration Editor:
+
+| Dashboard | Description | YAML |
+|-----------|-------------|------|
+| **DTT Training** | Full training dashboard with gauges, segment analysis, template details | [`dashboards/dtt_training_dashboard.yaml`](dashboards/dtt_training_dashboard.yaml) |
+| **Lockbox** | Lock status, settings, break config, device info | [`dashboards/lockbox_dashboard.yaml`](dashboards/lockbox_dashboard.yaml) |
+| **R&D Overview** | Combined view of all R&D devices at a glance | [`dashboards/combined_overview.yaml`](dashboards/combined_overview.yaml) |
+
+**How to import:** Settings > Dashboards > Add Dashboard > three dots > Raw configuration editor > paste YAML > Save
+
 ## API Documentation
 
 This integration uses the [Research and Desire API](https://docs.researchanddesire.com/dashboard/api/introduction).
