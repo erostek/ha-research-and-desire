@@ -1,0 +1,61 @@
+blueprint:
+  name: "R&D: DTT Personal Best Alert"
+  description: >
+    Track your best DTT session grade using an input_number helper.
+    When a new session grade exceeds the stored personal best, update the
+    helper and send a congratulations notification with old vs new best.
+  domain: automation
+  input:
+    grade_entity:
+      name: Session Grade Sensor
+      description: The DTT "Latest Session Grade" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    best_grade_helper:
+      name: Personal Best Helper
+      description: >
+        An input_number helper to store the personal best grade.
+        Create one in Settings > Devices & Services > Helpers > Number
+        (min: 0, max: 100).
+      selector:
+        entity:
+          filter:
+            - domain: input_number
+    notify_service:
+      name: Notification Service
+      description: The notify service to call
+      default: notify.notify
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input grade_entity
+
+condition:
+  - condition: template
+    value_template: >
+      {{ trigger.to_state.state not in ['unavailable', 'unknown']
+         and trigger.to_state.state | float(0) > states(best_helper) | float(0) }}
+    variables:
+      best_helper: !input best_grade_helper
+
+action:
+  - variables:
+      old_best: "{{ states(best_helper) | float(0) }}"
+      new_best: "{{ trigger.to_state.state | float(0) }}"
+      best_helper: !input best_grade_helper
+  - action: input_number.set_value
+    target:
+      entity_id: !input best_grade_helper
+    data:
+      value: "{{ new_best }}"
+  - action: !input notify_service
+    data:
+      title: "New Personal Best!"
+      message: >
+        Congratulations! New personal best: {{ new_best }}%
+        (previous best: {{ old_best }}%)

@@ -56,7 +56,24 @@
       "lkbx_emergency_unlock": { "name": "Emergency Unlock" },
       "lkbx_deepthroat_enabled": { "name": "Deepthroat Enabled" },
       "lkbx_shame_enabled": { "name": "Shame Enabled" },
-      "lkbx_test_lock": { "name": "Test Lock" }
+      "lkbx_test_lock": { "name": "Test Lock" },
+      "session_best_grade": { "name": "Best Segment Grade" },
+      "session_worst_grade": { "name": "Worst Segment Grade" },
+      "session_max_speed": { "name": "Max Speed" },
+      "session_passed_segments": { "name": "Passed Segments" },
+      "session_failed_segments": { "name": "Failed Segments" },
+      "session_pass_rate": { "name": "Segment Pass Rate" },
+      "lkbx_break_regularity": { "name": "Break Regularity" },
+      "lkbx_break_penalty": { "name": "Break Penalty" },
+      "lkbx_break_maximum": { "name": "Max Break Duration" },
+      "lkbx_dtt_time_reduction": { "name": "DTT Time Reduction" },
+      "lkbx_min_duration": { "name": "Min Lock Duration" },
+      "lkbx_max_duration": { "name": "Max Lock Duration" },
+      "lkbx_random_duration": { "name": "Random Duration" },
+      "lkbx_time_displayed": { "name": "Time Displayed" },
+      "lkbx_publicly_listed": { "name": "Publicly Listed" },
+      "lkbx_template_count": { "name": "Template Count" },
+      "lkbx_session_count": { "name": "Session Count" }
     },
     "event": {
       "session_completed": {

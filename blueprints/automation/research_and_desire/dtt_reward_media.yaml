@@ -1,0 +1,68 @@
+blueprint:
+  name: "R&D: DTT Reward Media Player"
+  description: >
+    Play a specific media item on a media player when a DTT session is passed.
+    Stop the media player when a session is failed. Use this to play a
+    reward song, playlist, or celebratory sound effect on session results.
+  domain: automation
+  input:
+    session_event_entity:
+      name: Session Completed Event
+      description: The DTT "Session Completed" event entity
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: event
+    media_player:
+      name: Media Player
+      description: The media player to control
+      selector:
+        entity:
+          filter:
+            - domain: media_player
+    media_content_id:
+      name: Media Content ID
+      description: >
+        The media content to play (URL, playlist ID, or media file path)
+      selector:
+        text:
+    media_content_type:
+      name: Media Content Type
+      description: The type of media content (e.g. music, playlist, video)
+      default: music
+      selector:
+        select:
+          options:
+            - music
+            - playlist
+            - video
+            - channel
+            - app
+
+trigger:
+  - trigger: state
+    entity_id: !input session_event_entity
+    attribute: event_type
+
+action:
+  - variables:
+      event_type: "{{ trigger.to_state.attributes.event_type }}"
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ event_type == 'session_passed' }}"
+        sequence:
+          - action: media_player.play_media
+            target:
+              entity_id: !input media_player
+            data:
+              media_content_id: !input media_content_id
+              media_content_type: !input media_content_type
+      - conditions:
+          - condition: template
+            value_template: "{{ event_type == 'session_failed' }}"
+        sequence:
+          - action: media_player.media_stop
+            target:
+              entity_id: !input media_player

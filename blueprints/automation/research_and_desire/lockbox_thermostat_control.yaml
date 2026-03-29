@@ -1,0 +1,78 @@
+blueprint:
+  name: "R&D: Lockbox Controls Thermostat"
+  description: >
+    Lower the thermostat when the Lockbox is locked (restriction/punishment)
+    and raise it when unlocked (comfort/reward). Configurable temperatures
+    for both states.
+  domain: automation
+  input:
+    lock_status_entity:
+      name: Lock Status Sensor
+      description: The Lockbox "Lock Status" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    climate_entity:
+      name: Thermostat
+      description: The climate entity to control
+      selector:
+        entity:
+          filter:
+            - domain: climate
+    locked_temperature:
+      name: Locked Temperature
+      description: Temperature to set when the Lockbox is locked
+      default: 18
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 0.5
+          unit_of_measurement: "°C"
+    unlocked_temperature:
+      name: Unlocked Temperature
+      description: Temperature to set when the Lockbox is unlocked
+      default: 22
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 0.5
+          unit_of_measurement: "°C"
+
+trigger:
+  - trigger: state
+    entity_id: !input lock_status_entity
+
+condition:
+  - condition: template
+    value_template: >
+      {{ trigger.to_state.state in ['Locked', 'Unlocked']
+         and trigger.from_state.state in ['Locked', 'Unlocked']
+         and trigger.from_state.state != trigger.to_state.state }}
+
+action:
+  - variables:
+      locked_temp: !input locked_temperature
+      unlocked_temp: !input unlocked_temperature
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'Locked' }}"
+        sequence:
+          - action: climate.set_temperature
+            target:
+              entity_id: !input climate_entity
+            data:
+              temperature: "{{ locked_temp }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'Unlocked' }}"
+        sequence:
+          - action: climate.set_temperature
+            target:
+              entity_id: !input climate_entity
+            data:
+              temperature: "{{ unlocked_temp }}"

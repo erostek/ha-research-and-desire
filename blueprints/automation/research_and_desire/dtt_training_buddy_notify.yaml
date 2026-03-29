@@ -1,0 +1,48 @@
+blueprint:
+  name: "R&D: DTT Training Buddy Notification"
+  description: >
+    Notify a training partner or keyholder whenever a DTT session completes.
+    Sends the session result, grade, and points to a separate notification
+    service so your buddy stays informed of your progress.
+  domain: automation
+  input:
+    session_event_entity:
+      name: Session Completed Event
+      description: The DTT "Session Completed" event entity
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: event
+    buddy_notify_service:
+      name: Buddy Notification Service
+      description: The notify service to send to the training buddy
+      default: notify.notify
+      selector:
+        text:
+    buddy_name:
+      name: Buddy Name
+      description: Name of the training buddy (used in the notification)
+      default: "Training Buddy"
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input session_event_entity
+    attribute: event_type
+
+action:
+  - variables:
+      event_type: "{{ trigger.to_state.attributes.event_type }}"
+      points: "{{ trigger.to_state.attributes.total_points | default('?') }}"
+      grade: "{{ trigger.to_state.attributes.average_grade | default('?') }}"
+      segments: "{{ trigger.to_state.attributes.segment_count | default('?') }}"
+      result: "{{ 'PASSED' if event_type == 'session_passed' else 'FAILED' }}"
+      buddy: !input buddy_name
+  - action: !input buddy_notify_service
+    data:
+      title: "DTT Session Update for {{ buddy }}"
+      message: >
+        Session {{ result }}!
+        Grade: {{ grade }}% | Points: {{ points }} | Segments: {{ segments }}

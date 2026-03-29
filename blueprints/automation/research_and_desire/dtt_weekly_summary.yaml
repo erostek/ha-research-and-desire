@@ -1,0 +1,80 @@
+blueprint:
+  name: "R&D: DTT Weekly Training Summary"
+  description: >
+    Every Sunday at a configured time, send a summary notification with
+    the current session grade, points, total reps, and training status.
+    Great for weekly progress reviews.
+  domain: automation
+  input:
+    grade_entity:
+      name: Session Grade Sensor
+      description: The DTT "Latest Session Grade" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    points_entity:
+      name: Points Sensor
+      description: The DTT "Session Points" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    reps_entity:
+      name: Total Reps Sensor
+      description: The DTT "Total Reps" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    status_entity:
+      name: Training Status Sensor
+      description: The DTT "Training Status" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    notify_service:
+      name: Notification Service
+      description: The notify service to call
+      default: notify.notify
+      selector:
+        text:
+    summary_time:
+      name: Summary Time
+      description: Time on Sunday to send the weekly summary
+      default: "20:00:00"
+      selector:
+        time:
+
+trigger:
+  - trigger: time
+    at: !input summary_time
+
+condition:
+  - condition: time
+    weekday:
+      - sun
+
+action:
+  - variables:
+      grade: "{{ states(grade_ent) | default('N/A') }}"
+      points: "{{ states(points_ent) | default('N/A') }}"
+      reps: "{{ states(reps_ent) | default('N/A') }}"
+      status: "{{ states(status_ent) | default('N/A') }}"
+      grade_ent: !input grade_entity
+      points_ent: !input points_entity
+      reps_ent: !input reps_entity
+      status_ent: !input status_entity
+  - action: !input notify_service
+    data:
+      title: "Weekly DTT Training Summary"
+      message: >
+        Training Status: {{ status }}
+        Latest Grade: {{ grade }}%
+        Points: {{ points }}
+        Total Reps: {{ reps }}

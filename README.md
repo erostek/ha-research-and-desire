@@ -79,6 +79,12 @@ Or manually:
 | Last Seen | Last device connection time |
 | Last Log | Last activity log timestamp |
 | Serial Number | Device serial number |
+| Best Segment Grade | Highest grade from session segments (%) |
+| Worst Segment Grade | Lowest grade from session segments (%) |
+| Max Speed | Maximum measured speed across segments |
+| Passed Segments | Number of passed segments |
+| Failed Segments | Number of failed segments |
+| Segment Pass Rate | Percentage of segments passed (%) |
 
 **Event entity:** `Session Completed` — fires `session_passed`, `session_failed`, or `session_completed` with data including `session_id`, `passed`, `total_points`, `average_grade`, `segment_count`, `created_at`.
 
@@ -96,6 +102,17 @@ Or manually:
 | Deepthroat Enabled | On / Off (DTT integration for lock time reduction) |
 | Shame Enabled | On / Off |
 | Test Lock | Yes / No |
+| Break Regularity | Time between breaks (seconds) |
+| Break Penalty | Time added for taking a break (seconds) |
+| Max Break Duration | Maximum break length (seconds) |
+| DTT Time Reduction | Lock time reduced per DTT session |
+| Min Lock Duration | Minimum lock duration (seconds) |
+| Max Lock Duration | Maximum lock duration (seconds) |
+| Random Duration | Whether lock duration is randomized |
+| Time Displayed | Whether remaining time is shown |
+| Publicly Listed | Whether the lock is publicly listed |
+| Template Count | Number of lock templates |
+| Session Count | Number of lock sessions |
 
 ### OSSM
 
@@ -193,6 +210,54 @@ Send warning and final notifications during Lockbox break time to enforce time l
 Announce lock/unlock status on a smart speaker via TTS. Use as a humiliation element.
 
 [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_shame_announcement.yaml)
+
+### DTT Personal Best Alert
+
+Track your best session grade using an input_number helper. Get notified when you beat your personal best.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_personal_best_alert.yaml)
+
+### DTT Training Buddy Notification
+
+Notify a training partner or keyholder whenever a DTT session completes with full results.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_training_buddy_notify.yaml)
+
+### DTT Reward Media Player
+
+Play music or media on a media player when a session is passed. Stop media on failure.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_reward_media.yaml)
+
+### DTT Weekly Training Summary
+
+Every Sunday, receive a summary notification with your current session grade, points, reps, and training status.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_weekly_summary.yaml)
+
+### DTT Failure Extends Lockbox
+
+Notification when a failed DTT session results in added Lockbox time. Pairs with the Lockbox deepthroat time reduction feature.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdtt_fail_lockbox_extend.yaml)
+
+### Lockbox Keyholder Activity Log
+
+Send all Lockbox state changes to a keyholder's notification service with timestamps and active lock details.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_keyholder_log.yaml)
+
+### Lockbox Controls Thermostat
+
+Lower the thermostat when locked (punishment), raise it when unlocked (reward). Configurable temperatures.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_thermostat_control.yaml)
+
+### Lockbox Camera Snapshot
+
+Take a camera snapshot whenever the Lockbox state changes and send it via notification.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_camera_snapshot.yaml)
 
 ## API Documentation
 

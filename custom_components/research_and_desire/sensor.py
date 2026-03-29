@@ -291,6 +291,55 @@ def _dtt_active_template_attrs(d: DttDeviceData) -> dict[str, Any]:
     }
 
 
+# --- Additional DTT session analysis ---
+
+def _dtt_session_best_grade(d: DttDeviceData) -> float | None:
+    segments = _get_segments(d.session_detail)
+    if not segments:
+        return None
+    grades = [s["percentGrade"] for s in segments if s.get("percentGrade") is not None]
+    return round(max(grades), 1) if grades else None
+
+
+def _dtt_session_worst_grade(d: DttDeviceData) -> float | None:
+    segments = _get_segments(d.session_detail)
+    if not segments:
+        return None
+    grades = [s["percentGrade"] for s in segments if s.get("percentGrade") is not None]
+    return round(min(grades), 1) if grades else None
+
+
+def _dtt_session_max_speed(d: DttDeviceData) -> float | None:
+    segments = _get_segments(d.session_detail)
+    if not segments:
+        return None
+    values = [s["speedMeasured"] for s in segments if s.get("speedMeasured") is not None]
+    return round(max(values), 2) if values else None
+
+
+def _dtt_session_passed_segments(d: DttDeviceData) -> int | None:
+    segments = _get_segments(d.session_detail)
+    if not segments:
+        return None
+    return sum(1 for s in segments if s.get("passed") is True)
+
+
+def _dtt_session_failed_segments(d: DttDeviceData) -> int | None:
+    segments = _get_segments(d.session_detail)
+    if not segments:
+        return None
+    return sum(1 for s in segments if s.get("passed") is False)
+
+
+def _dtt_session_pass_rate(d: DttDeviceData) -> float | None:
+    segments = _get_segments(d.session_detail)
+    if not segments:
+        return None
+    total = len(segments)
+    passed = sum(1 for s in segments if s.get("passed") is True)
+    return round((passed / total) * 100, 1) if total > 0 else None
+
+
 # ---------------------------------------------------------------------------
 # DTT sensor descriptions
 # ---------------------------------------------------------------------------
@@ -429,6 +478,39 @@ DTT_SENSOR_DESCRIPTIONS: tuple[ResearchAndDesireSensorDescription, ...] = (
         device_class=SensorDeviceClass.TIMESTAMP,
         value_fn=_dtt_device_last_log,
     ),
+    ResearchAndDesireSensorDescription(
+        key="session_best_grade",
+        translation_key="session_best_grade",
+        native_unit_of_measurement="%",
+        value_fn=_dtt_session_best_grade,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="session_worst_grade",
+        translation_key="session_worst_grade",
+        native_unit_of_measurement="%",
+        value_fn=_dtt_session_worst_grade,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="session_max_speed",
+        translation_key="session_max_speed",
+        value_fn=_dtt_session_max_speed,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="session_passed_segments",
+        translation_key="session_passed_segments",
+        value_fn=_dtt_session_passed_segments,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="session_failed_segments",
+        translation_key="session_failed_segments",
+        value_fn=_dtt_session_failed_segments,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="session_pass_rate",
+        translation_key="session_pass_rate",
+        native_unit_of_measurement="%",
+        value_fn=_dtt_session_pass_rate,
+    ),
 )
 
 
@@ -564,6 +646,81 @@ def _lkbx_test_lock(d: LkbxDeviceData) -> str | None:
     return "Yes" if val else "No"
 
 
+def _lkbx_break_regularity(d: LkbxDeviceData) -> float | None:
+    if d.active_template is None:
+        return None
+    val = d.active_template.get("breakRegularity")
+    return val if val is not None else None
+
+
+def _lkbx_break_penalty(d: LkbxDeviceData) -> float | None:
+    if d.active_template is None:
+        return None
+    val = d.active_template.get("breakPenalty")
+    return val if val is not None else None
+
+
+def _lkbx_break_maximum(d: LkbxDeviceData) -> float | None:
+    if d.active_template is None:
+        return None
+    val = d.active_template.get("breakMaximum")
+    return val if val is not None else None
+
+
+def _lkbx_dtt_time_reduction(d: LkbxDeviceData) -> float | None:
+    if d.active_template is None:
+        return None
+    val = d.active_template.get("deepthroatTimeReduction")
+    return val if val is not None else None
+
+
+def _lkbx_min_duration(d: LkbxDeviceData) -> int | None:
+    if d.active_template is None:
+        return None
+    return d.active_template.get("minDuration")
+
+
+def _lkbx_max_duration(d: LkbxDeviceData) -> int | None:
+    if d.active_template is None:
+        return None
+    return d.active_template.get("maxDuration")
+
+
+def _lkbx_random_duration(d: LkbxDeviceData) -> str | None:
+    if d.active_template is None:
+        return None
+    val = d.active_template.get("isRandomDuration")
+    if val is None:
+        return None
+    return "On" if val else "Off"
+
+
+def _lkbx_time_displayed(d: LkbxDeviceData) -> str | None:
+    if d.active_template is None:
+        return None
+    val = d.active_template.get("isTimeDisplayed")
+    if val is None:
+        return None
+    return "Yes" if val else "No"
+
+
+def _lkbx_publicly_listed(d: LkbxDeviceData) -> str | None:
+    if d.active_template is None:
+        return None
+    val = d.active_template.get("isPubliclyListed")
+    if val is None:
+        return None
+    return "Yes" if val else "No"
+
+
+def _lkbx_template_count(d: LkbxDeviceData) -> int:
+    return len(d.templates) if d.templates else 0
+
+
+def _lkbx_session_count(d: LkbxDeviceData) -> int:
+    return len(d.sessions) if d.sessions else 0
+
+
 def _lkbx_active_lock_attrs(d: LkbxDeviceData) -> dict[str, Any]:
     """Return active lock template details as extra attributes."""
     if d.active_template is None:
@@ -638,6 +795,71 @@ LKBX_SENSOR_DESCRIPTIONS: tuple[ResearchAndDesireSensorDescription, ...] = (
         key="lkbx_test_lock",
         translation_key="lkbx_test_lock",
         value_fn=_lkbx_test_lock,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_break_regularity",
+        translation_key="lkbx_break_regularity",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="s",
+        value_fn=_lkbx_break_regularity,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_break_penalty",
+        translation_key="lkbx_break_penalty",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="s",
+        value_fn=_lkbx_break_penalty,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_break_maximum",
+        translation_key="lkbx_break_maximum",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="s",
+        value_fn=_lkbx_break_maximum,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_dtt_time_reduction",
+        translation_key="lkbx_dtt_time_reduction",
+        value_fn=_lkbx_dtt_time_reduction,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_min_duration",
+        translation_key="lkbx_min_duration",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="s",
+        value_fn=_lkbx_min_duration,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_max_duration",
+        translation_key="lkbx_max_duration",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="s",
+        value_fn=_lkbx_max_duration,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_random_duration",
+        translation_key="lkbx_random_duration",
+        value_fn=_lkbx_random_duration,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_time_displayed",
+        translation_key="lkbx_time_displayed",
+        value_fn=_lkbx_time_displayed,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_publicly_listed",
+        translation_key="lkbx_publicly_listed",
+        value_fn=_lkbx_publicly_listed,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_template_count",
+        translation_key="lkbx_template_count",
+        value_fn=_lkbx_template_count,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_session_count",
+        translation_key="lkbx_session_count",
+        value_fn=_lkbx_session_count,
     ),
 )
 

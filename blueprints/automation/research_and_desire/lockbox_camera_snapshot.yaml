@@ -1,0 +1,56 @@
+blueprint:
+  name: "R&D: Lockbox State Change Camera Snapshot"
+  description: >
+    Take a camera snapshot whenever the Lockbox state changes between
+    Locked and Unlocked. The snapshot is sent as an image notification
+    to the configured notification service.
+  domain: automation
+  input:
+    lock_status_entity:
+      name: Lock Status Sensor
+      description: The Lockbox "Lock Status" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    camera_entity:
+      name: Camera
+      description: The camera entity to take a snapshot from
+      selector:
+        entity:
+          filter:
+            - domain: camera
+    notify_service:
+      name: Notification Service
+      description: The notify service to send the snapshot to
+      default: notify.notify
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input lock_status_entity
+
+condition:
+  - condition: template
+    value_template: >
+      {{ trigger.to_state.state in ['Locked', 'Unlocked']
+         and trigger.from_state.state in ['Locked', 'Unlocked']
+         and trigger.from_state.state != trigger.to_state.state }}
+
+action:
+  - variables:
+      snapshot_path: "/config/www/lockbox_snapshot_{{ now().strftime('%Y%m%d_%H%M%S') }}.jpg"
+      new_state: "{{ trigger.to_state.state }}"
+  - action: camera.snapshot
+    target:
+      entity_id: !input camera_entity
+    data:
+      filename: "{{ snapshot_path }}"
+  - action: !input notify_service
+    data:
+      title: "Lockbox {{ new_state }}"
+      message: "Lockbox state changed to {{ new_state }} at {{ now().strftime('%H:%M:%S') }}"
+      data:
+        image: "{{ snapshot_path }}"

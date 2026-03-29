@@ -1,0 +1,56 @@
+blueprint:
+  name: "R&D: DTT Failure Extends Lockbox"
+  description: >
+    When a DTT session fails, send a notification about the consequence.
+    This is a notification-only blueprint — the R&D API handles the actual
+    lock time extension when deepthroat mode is enabled in the lockbox
+    template. This blueprint informs the user of the penalty applied.
+  domain: automation
+  input:
+    session_event_entity:
+      name: Session Completed Event
+      description: The DTT "Session Completed" event entity
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: event
+    dtt_time_reduction_entity:
+      name: DTT Time Reduction Sensor
+      description: The Lockbox "DTT Time Reduction" sensor (lkbx_dtt_time_reduction)
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    notify_service:
+      name: Notification Service
+      description: The notify service to call
+      default: notify.notify
+      selector:
+        text:
+    punishment_message:
+      name: Punishment Message
+      description: Custom shame message for the failure notification
+      default: "You failed. Time has been added to your Lockbox as punishment."
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input session_event_entity
+    attribute: event_type
+    to: "session_failed"
+
+action:
+  - variables:
+      time_reduction: "{{ states(reduction_entity) }}"
+      grade: "{{ trigger.to_state.attributes.average_grade | default('?') }}"
+      custom_message: !input punishment_message
+      reduction_entity: !input dtt_time_reduction_entity
+  - action: !input notify_service
+    data:
+      title: "DTT Failure — Lockbox Extended"
+      message: >
+        {{ custom_message }}
+        Grade: {{ grade }}% | Time adjustment: {{ time_reduction }}
