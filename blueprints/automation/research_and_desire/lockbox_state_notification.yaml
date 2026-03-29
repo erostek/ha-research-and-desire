@@ -1,0 +1,43 @@
+blueprint:
+  name: "R&D: Lockbox State Change Notification"
+  description: >
+    Send a notification whenever the Lockbox lock status changes between
+    Locked and Unlocked.
+  domain: automation
+  input:
+    lock_status_entity:
+      name: Lock Status Sensor
+      description: The Lockbox "Lock Status" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    notify_service:
+      name: Notification Service
+      description: The notify service to call
+      default: notify.notify
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input lock_status_entity
+
+condition:
+  - condition: template
+    value_template: >
+      {{ trigger.from_state.state in ['Locked', 'Unlocked']
+         and trigger.to_state.state in ['Locked', 'Unlocked']
+         and trigger.from_state.state != trigger.to_state.state }}
+
+action:
+  - action: !input notify_service
+    data:
+      title: "Lockbox {{ trigger.to_state.state }}"
+      message: >
+        {% if trigger.to_state.state == 'Locked' %}
+        The Lockbox has been locked.
+        {% else %}
+        The Lockbox has been unlocked.
+        {% endif %}

@@ -3,18 +3,20 @@
 [![HACS Validation](https://github.com/erostek/ha-research-and-desire/actions/workflows/validate.yaml/badge.svg)](https://github.com/erostek/ha-research-and-desire/actions/workflows/validate.yaml)
 [![Hassfest Validation](https://github.com/erostek/ha-research-and-desire/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/erostek/ha-research-and-desire/actions/workflows/hassfest.yaml)
 
-Custom Home Assistant integration for [Research and Desire](https://researchanddesire.com/) devices. Pulls Deepthroat Trainer (DTT) session data from the Research and Desire cloud API and exposes it as Home Assistant entities.
+Custom Home Assistant integration for [Research and Desire](https://researchanddesire.com/) devices. Supports the **Deepthroat Trainer (DTT)**, **Lockbox (LKBX)**, and **OSSM** — exposing session data, device status, and training metrics as Home Assistant entities.
 
 ## Features
 
-- **10 Sensors** — session status, grade, points, duration, segments, date, device software version, device last seen, active template, target depth
-- **Event Entity** — fires `session_passed`, `session_failed`, or `session_completed` events for use in automations
-- **Cloud Polling** — polls the API every 60 seconds with parallel endpoint fetching
+- **Deepthroat Trainer** — 23 sensors + 1 event entity covering session results, training template details, and device info
+- **Lockbox** — 10 sensors for lock status, active lock settings, break/shame/emergency configuration
+- **OSSM** — 4 sensors (stub, ready for when a device is connected)
+- **Event Entity** — fires `session_passed`, `session_failed`, or `session_completed` events for DTT sessions
+- **Blueprints** — ready-to-import automation blueprints for common use cases
+- **Cloud Polling** — polls the API every 60 seconds
 - **No extra dependencies** — uses Home Assistant's built-in aiohttp session
 
 ## Requirements
 
-- Home Assistant 2024.4.0 or newer
 - Research and Desire account with **Ultra** subscription (required for API access)
 - API key from [R&D Dashboard](https://dashboard.researchanddesire.com/) (Settings > API Keys)
 
@@ -46,53 +48,103 @@ Or manually:
 1. Go to **Settings** > **Devices & Services** > **Add Integration**
 2. Search for **Research and Desire**
 3. Enter your API key
-4. Done — entities will appear under the **DTT Trainer** device
+4. Done — devices will appear automatically for each R&D product linked to your account
 
 ## Entities
 
-### Sensors
+### Deepthroat Trainer (DTT)
 
-| Sensor | Description | Device Class |
-|--------|-------------|-------------|
-| Latest Session Status | Passed / Failed / In Progress | — |
-| Latest Session Grade | Average percent grade across segments | — (%) |
-| Latest Session Points | Total points from all segments | Total Increasing |
-| Latest Session Date | Session creation timestamp | Timestamp |
-| Latest Session Segments | Number of segments | — |
-| Latest Session Duration | Total measured duration | Duration (s) |
-| Device Software Version | DTT firmware version | — |
-| Device Last Seen | Last device connection time | Timestamp |
-| Active Template | Name of active training program | — |
-| Target Depth | Target depth from active template | — (mm) |
+| Sensor | Description |
+|--------|-------------|
+| Latest Session Status | Passed / Failed / In Progress |
+| Latest Session Grade | Average percent grade across segments |
+| Latest Session Points | Total points from all segments |
+| Latest Session Date | Session creation timestamp |
+| Latest Session Segments | Number of segments in the session |
+| Latest Session Duration | Total measured duration (seconds) |
+| Session Distance | Total distance travelled across segments |
+| Longest Deepthroat | Longest deepthroat measurement (ms) |
+| Session Total Reps | Total reps measured across segments |
+| Avg Stroke Length | Average stroke length (mm) |
+| Avg Speed | Average measured speed |
+| Active Template | Name of the active training program |
+| Template Message | Motivational message from template |
+| Template Tagline | Template tagline text |
+| Toy Tagline | Toy-specific tagline |
+| Hands-Free Mode | On / Off |
+| Target Depth | Target depth (mm) |
+| Target Window | Target window tolerance (mm) |
+| Template Segments | Number of segments in the template |
+| Software Version | Device firmware version |
+| Last Seen | Last device connection time |
+| Last Log | Last activity log timestamp |
+| Serial Number | Device serial number |
 
-### Events
+**Event entity:** `Session Completed` — fires `session_passed`, `session_failed`, or `session_completed` with data including `session_id`, `passed`, `total_points`, `average_grade`, `segment_count`, `created_at`.
 
-| Entity | Event Types | Description |
-|--------|-------------|-------------|
-| Session Completed | `session_passed`, `session_failed`, `session_completed` | Fires when a new session is detected |
+### Lockbox (LKBX)
 
-Event data includes: `session_id`, `passed`, `total_points`, `average_grade`, `segment_count`, `created_at`.
+| Sensor | Description |
+|--------|-------------|
+| Lock Status | Locked / Unlocked |
+| Last Seen | Last device connection time |
+| MAC Address | Device Bluetooth MAC address |
+| Active Lock | Name of active lock template, or "No active lock" |
+| Lock Duration | Duration of the active lock (seconds) |
+| Breaks Enabled | On / Off |
+| Emergency Unlock | On / Off |
+| Deepthroat Enabled | On / Off (DTT integration for lock time reduction) |
+| Shame Enabled | On / Off |
+| Test Lock | Yes / No |
 
-## Automation Example
+### OSSM
 
-Trigger an automation when a session is passed:
+| Sensor | Description |
+|--------|-------------|
+| Session Count | Number of OSSM sessions |
+| Pattern Count | Number of movement patterns |
+| Firmware Version | Device firmware version |
+| Last Seen | Last device connection time |
 
-```yaml
-automation:
-  - alias: "DTT Session Passed"
-    trigger:
-      - platform: state
-        entity_id: event.dtt_trainer_session_completed
-        attribute: event_type
-        to: "session_passed"
-    action:
-      - service: notify.mobile_app
-        data:
-          title: "DTT Session Passed!"
-          message: >
-            Score: {{ trigger.to_state.attributes.total_points }} points,
-            Grade: {{ trigger.to_state.attributes.average_grade }}%
-```
+## Automation Blueprints
+
+Ready-to-use automation blueprints — click to import directly into your Home Assistant:
+
+### DTT Training Reminder
+
+Send a notification if no training session has been completed by a specified time of day.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fdaily_training_reminder.yaml)
+
+### Session Completed Notification
+
+Get notified with full session results (grade, points, segments) whenever a DTT session is completed.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fsession_completed_notification.yaml)
+
+### Session Grade Light Feedback
+
+Change a light color based on the session grade — green for passing grades, red for failing. Great for visual feedback in the training room.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fpoor_grade_light_feedback.yaml)
+
+### Training Streak Tracker
+
+Track consecutive training days using an HA counter helper. Sends a congratulations notification after each session with the streak count.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Fsession_streak_tracker.yaml)
+
+### Lockbox State Change Notification
+
+Get notified whenever the Lockbox changes between Locked and Unlocked.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_state_notification.yaml)
+
+### Lockbox Unlock Indicator Light
+
+Automatically turn on a light or switch when the Lockbox is unlocked, and turn it off when locked again.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Ferostek%2Fha-research-and-desire%2Frefs%2Fheads%2Fmaster%2Fblueprints%2Fautomation%2Fresearch_and_desire%2Flockbox_break_light.yaml)
 
 ## API Documentation
 

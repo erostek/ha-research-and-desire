@@ -1,0 +1,50 @@
+blueprint:
+  name: "R&D: Training Streak Tracker"
+  description: >
+    Track consecutive training days. Sends a congratulations notification
+    after each completed session with the current streak count.
+    Uses an HA counter helper to persist the streak across restarts.
+  domain: automation
+  input:
+    session_event_entity:
+      name: Session Completed Event
+      description: The DTT "Session Completed" event entity
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: event
+    streak_counter:
+      name: Streak Counter
+      description: >
+        A counter helper to track the streak. Create one in
+        Settings > Devices & Services > Helpers > Counter.
+      selector:
+        entity:
+          filter:
+            - domain: counter
+    notify_service:
+      name: Notification Service
+      default: notify.notify
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input session_event_entity
+    attribute: event_type
+
+action:
+  - action: counter.increment
+    target:
+      entity_id: !input streak_counter
+  - variables:
+      streak: "{{ states(config.entry_data.streak_counter) | int + 1 }}"
+      event_type: "{{ trigger.to_state.attributes.event_type }}"
+      grade: "{{ trigger.to_state.attributes.average_grade | default('?') }}"
+  - action: !input notify_service
+    data:
+      title: "Training Streak!"
+      message: >
+        Session {{ 'passed' if event_type == 'session_passed' else 'completed' }}
+        with {{ grade }}% grade. Keep it up!

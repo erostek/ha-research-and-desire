@@ -1,0 +1,59 @@
+blueprint:
+  name: "R&D: Daily Training Reminder"
+  description: >
+    Send a notification if no DTT training session has been completed by a
+    specified time of day.
+  domain: automation
+  input:
+    session_date_entity:
+      name: Session Date Sensor
+      description: The DTT "Latest Session Date" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+              device_class: timestamp
+    reminder_time:
+      name: Reminder Time
+      description: Time of day to check for a completed session
+      default: "11:00:00"
+      selector:
+        time:
+    notify_service:
+      name: Notification Service
+      description: The notify service to call (e.g. notify.notify, notify.mobile_app_phone)
+      default: notify.notify
+      selector:
+        text:
+    notification_title:
+      name: Notification Title
+      default: "DTT Training Reminder"
+      selector:
+        text:
+    notification_message:
+      name: Notification Message
+      default: "No training session completed today yet! Time to train."
+      selector:
+        text:
+
+trigger:
+  - trigger: time
+    at: !input reminder_time
+
+condition:
+  - condition: template
+    value_template: >
+      {% set entity = states[trigger.entity_id] if trigger.entity_id is defined else none %}
+      {% set session_entity = '{{ states(input_session_date_entity) }}' %}
+      {{ not is_state(session_entity, 'unavailable')
+         and not is_state(session_entity, 'unknown')
+         and as_timestamp(states(session_entity)) < as_timestamp(today_at('00:00')) }}
+    variables:
+      input_session_date_entity: !input session_date_entity
+
+action:
+  - action: !input notify_service
+    data:
+      title: !input notification_title
+      message: !input notification_message

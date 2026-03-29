@@ -1,0 +1,73 @@
+blueprint:
+  name: "R&D: Session Grade Light Feedback"
+  description: >
+    Change a light color based on the latest DTT session grade.
+    Green for grades above the threshold, red for below.
+    Great for visual feedback in the training room.
+  domain: automation
+  input:
+    grade_entity:
+      name: Session Grade Sensor
+      description: The DTT "Latest Session Grade" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    target_light:
+      name: Feedback Light
+      description: The light to change color
+      selector:
+        entity:
+          filter:
+            - domain: light
+    grade_threshold:
+      name: Grade Threshold (%)
+      description: Grades above this are green, below are red
+      default: 75
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 5
+          unit_of_measurement: "%"
+
+trigger:
+  - trigger: state
+    entity_id: !input grade_entity
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.to_state.state not in ['unavailable', 'unknown'] }}"
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state | float >= grade_threshold }}"
+            variables:
+              grade_threshold: !input grade_threshold
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: !input target_light
+            data:
+              color_name: green
+              brightness: 255
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state | float < grade_threshold }}"
+            variables:
+              grade_threshold: !input grade_threshold
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: !input target_light
+            data:
+              color_name: red
+              brightness: 255
+  - delay:
+      minutes: 5
+  - action: light.turn_off
+    target:
+      entity_id: !input target_light

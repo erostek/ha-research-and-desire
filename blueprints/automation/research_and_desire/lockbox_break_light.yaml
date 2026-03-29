@@ -1,0 +1,50 @@
+blueprint:
+  name: "R&D: Lockbox Unlock Indicator Light"
+  description: >
+    Turn on a light when the Lockbox is unlocked and turn it off when
+    locked again. Useful as a visual indicator or to control smart
+    devices during unlocked periods.
+  domain: automation
+  input:
+    lock_status_entity:
+      name: Lock Status Sensor
+      description: The Lockbox "Lock Status" sensor
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: sensor
+    target_entity:
+      name: Light or Switch
+      description: The device to control based on lock state
+      selector:
+        entity:
+          filter:
+            - domain:
+                - light
+                - switch
+
+trigger:
+  - trigger: state
+    entity_id: !input lock_status_entity
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.to_state.state in ['Locked', 'Unlocked'] }}"
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'Unlocked' }}"
+        sequence:
+          - action: homeassistant.turn_on
+            target:
+              entity_id: !input target_entity
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'Locked' }}"
+        sequence:
+          - action: homeassistant.turn_off
+            target:
+              entity_id: !input target_entity

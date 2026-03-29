@@ -1,0 +1,38 @@
+blueprint:
+  name: "R&D: Session Completed Notification"
+  description: >
+    Send a notification with session results whenever a DTT training session
+    is completed (passed or failed).
+  domain: automation
+  input:
+    session_event_entity:
+      name: Session Completed Event
+      description: The DTT "Session Completed" event entity
+      selector:
+        entity:
+          filter:
+            - integration: research_and_desire
+              domain: event
+    notify_service:
+      name: Notification Service
+      description: The notify service to call
+      default: notify.notify
+      selector:
+        text:
+
+trigger:
+  - trigger: state
+    entity_id: !input session_event_entity
+    attribute: event_type
+
+action:
+  - variables:
+      event_type: "{{ trigger.to_state.attributes.event_type }}"
+      points: "{{ trigger.to_state.attributes.total_points | default('?') }}"
+      grade: "{{ trigger.to_state.attributes.average_grade | default('?') }}"
+      segments: "{{ trigger.to_state.attributes.segment_count | default('?') }}"
+      result: "{{ 'Passed' if event_type == 'session_passed' else ('Failed' if event_type == 'session_failed' else 'Completed') }}"
+  - action: !input notify_service
+    data:
+      title: "DTT Session {{ result }}!"
+      message: "Grade: {{ grade }}% | Points: {{ points }} | Segments: {{ segments }}"
