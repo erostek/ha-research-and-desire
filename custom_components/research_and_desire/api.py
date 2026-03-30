@@ -95,19 +95,15 @@ class ResearchAndDesireApiClient:
 
     async def async_get_dtt_sessions_latest(self) -> dict[str, Any] | None:
         """Get the most recent DTT session (summary, no segments)."""
-        try:
-            result = await self._request("GET", "/dtt/sessions/latest")
-            if result is None:
-                return None
-            # Handle if the endpoint wraps session in a key
-            if isinstance(result, dict) and "session" in result:
-                return result["session"]
-            if isinstance(result, list) and result:
-                return result[0]
-            return result
-        except ApiError as err:
-            _LOGGER.debug("No latest session available: %s", err)
+        result = await self._request("GET", "/dtt/sessions/latest")
+        if result is None:
             return None
+        # Handle if the endpoint wraps session in a key
+        if isinstance(result, dict) and "session" in result:
+            return result["session"]
+        if isinstance(result, list) and result:
+            return result[0]
+        return result
 
     async def async_get_dtt_session(self, session_id: int) -> dict[str, Any] | None:
         """Get a single DTT session with full segment detail."""
@@ -117,16 +113,12 @@ class ResearchAndDesireApiClient:
 
     async def async_get_dtt_templates_active(self) -> dict[str, Any] | None:
         """Get the currently active DTT training template."""
-        try:
-            result = await self._request("GET", "/dtt/templates/active")
-            if result is None:
-                return None
-            if isinstance(result, dict) and "template" in result:
-                return result["template"]
-            return result
-        except ApiError as err:
-            _LOGGER.debug("No active template: %s", err)
+        result = await self._request("GET", "/dtt/templates/active")
+        if result is None:
             return None
+        if isinstance(result, dict) and "template" in result:
+            return result["template"]
+        return result
 
     # Backward-compatible aliases for DTT methods (transition period)
     async def async_get_devices(self, limit: int | None = None) -> list[dict[str, Any]]:
@@ -154,46 +146,26 @@ class ResearchAndDesireApiClient:
         params = {}
         if limit is not None:
             params["limit"] = limit
-        try:
-            result = await self._request("GET", "/ossm", params=params or None)
-            return _extract_list(result)
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch OSSM devices: %s", err)
-            return []
+        result = await self._request("GET", "/ossm", params=params or None)
+        return _extract_list(result)
 
     async def async_get_ossm_sessions(self) -> list[dict[str, Any]]:
         """Get OSSM sessions."""
-        try:
-            result = await self._request("GET", "/ossm/sessions")
-            return _extract_list(result)
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch OSSM sessions: %s", err)
-            return []
+        result = await self._request("GET", "/ossm/sessions")
+        return _extract_list(result)
 
     async def async_get_ossm_patterns(self) -> list[dict[str, Any]]:
         """Get OSSM patterns."""
-        try:
-            result = await self._request("GET", "/ossm/patterns")
-            return _extract_list(result)
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch OSSM patterns: %s", err)
-            return []
+        result = await self._request("GET", "/ossm/patterns")
+        return _extract_list(result)
 
     async def async_get_ossm_settings(self) -> dict[str, Any] | None:
         """Get OSSM settings."""
-        try:
-            return await self._request("GET", "/ossm/settings")
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch OSSM settings: %s", err)
-            return None
+        return await self._request("GET", "/ossm/settings")
 
     async def async_get_ossm_firmware(self) -> dict[str, Any] | None:
         """Get OSSM firmware information."""
-        try:
-            return await self._request("GET", "/ossm/firmware")
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch OSSM firmware: %s", err)
-            return None
+        return await self._request("GET", "/ossm/firmware")
 
     # ------------------------------------------------------------------
     # LKBX (Lockbox) methods
@@ -204,39 +176,22 @@ class ResearchAndDesireApiClient:
         params = {}
         if limit is not None:
             params["limit"] = limit
-        try:
-            result = await self._request("GET", "/lkbx", params=params or None)
-            return _extract_list(result)
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch LKBX devices: %s", err)
-            return []
+        result = await self._request("GET", "/lkbx", params=params or None)
+        return _extract_list(result)
 
     async def async_get_lkbx_sessions(self) -> list[dict[str, Any]]:
         """Get Lockbox sessions."""
-        try:
-            result = await self._request("GET", "/lkbx/sessions")
-            return _extract_list(result)
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch LKBX sessions: %s", err)
-            return []
+        result = await self._request("GET", "/lkbx/sessions")
+        return _extract_list(result)
 
     async def async_get_lkbx_sessions_latest(self) -> dict[str, Any] | None:
         """Get the most recent Lockbox session."""
-        try:
-            result = await self._request("GET", "/lkbx/sessions/latest")
-            return result
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch latest LKBX session: %s", err)
-            return None
+        return await self._request("GET", "/lkbx/sessions/latest")
 
     async def async_get_lkbx_templates(self) -> list[dict[str, Any]]:
         """Get Lockbox templates."""
-        try:
-            result = await self._request("GET", "/lkbx/templates")
-            return _extract_list(result)
-        except ApiError as err:
-            _LOGGER.debug("Could not fetch LKBX templates: %s", err)
-            return []
+        result = await self._request("GET", "/lkbx/templates")
+        return _extract_list(result)
 
     async def async_get_lkbx_templates_active(self) -> dict[str, Any] | None:
         """Get the currently active Lockbox template.
@@ -244,14 +199,10 @@ class ResearchAndDesireApiClient:
         The API returns {"data": null, "message": "no active lock"} when
         no lock is active, which our _request method translates to None.
         """
-        try:
-            result = await self._request("GET", "/lkbx/templates/active")
-            if result is None:
-                return None
-            return result
-        except ApiError as err:
-            _LOGGER.debug("No active LKBX template: %s", err)
+        result = await self._request("GET", "/lkbx/templates/active")
+        if result is None:
             return None
+        return result
 
     # ------------------------------------------------------------------
     # Validation

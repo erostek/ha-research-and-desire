@@ -106,29 +106,36 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
         # ------------------------------------------------------------------
         raw_dtt_devices = await self._safe_fetch(
             self.client.async_get_dtt_devices(),
-            fallback=prev.dtt_devices if prev else {},
+            fallback=None,
         )
 
-        # Normalise: API returns a list; build a dict keyed by device id
-        dtt_device_list: list[dict[str, Any]] = (
-            raw_dtt_devices if isinstance(raw_dtt_devices, list) else []
-        )
-        dtt_devices: dict[int, DttDeviceData] = {}
-        for dev in dtt_device_list:
-            dev_id = dev.get("id")
-            if dev_id is not None:
-                dtt_devices[dev_id] = DttDeviceData(device_info=dev)
+        if raw_dtt_devices is None:
+            # API failed — retain previous devices
+            dtt_devices = dict(prev.dtt_devices) if prev else {}
+        else:
+            # Normalise: API returns a list; build a dict keyed by device id
+            dtt_device_list: list[dict[str, Any]] = (
+                raw_dtt_devices if isinstance(raw_dtt_devices, list) else []
+            )
+            dtt_devices: dict[int, DttDeviceData] = {}
+            for dev in dtt_device_list:
+                dev_id = dev.get("id")
+                if dev_id is not None:
+                    dtt_devices[dev_id] = DttDeviceData(device_info=dev)
+
+        # Previous DTT data for fallbacks
+        prev_dtt = next(iter(prev.dtt_devices.values()), None) if prev else None
 
         # Fetch latest session (global endpoint)
         latest_session = await self._safe_fetch(
             self.client.async_get_dtt_sessions_latest(),
-            fallback=None,
+            fallback=prev_dtt.latest_session if prev_dtt else None,
         )
 
         # Fetch active template (global endpoint)
         active_template = await self._safe_fetch(
             self.client.async_get_dtt_templates_active(),
-            fallback=None,
+            fallback=prev_dtt.active_template if prev_dtt else None,
         )
 
         _LOGGER.debug(
@@ -190,33 +197,41 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
         # ------------------------------------------------------------------
         raw_ossm_devices = await self._safe_fetch(
             self.client.async_get_ossm_devices(),
-            fallback=[],
+            fallback=None,
         )
-        ossm_device_list: list[dict[str, Any]] = (
-            raw_ossm_devices if isinstance(raw_ossm_devices, list) else []
-        )
-        ossm_devices: dict[int, OssmDeviceData] = {}
-        for dev in ossm_device_list:
-            dev_id = dev.get("id")
-            if dev_id is not None:
-                ossm_devices[dev_id] = OssmDeviceData(device_info=dev)
+
+        if raw_ossm_devices is None:
+            ossm_devices = dict(prev.ossm_devices) if prev else {}
+        else:
+            ossm_device_list: list[dict[str, Any]] = (
+                raw_ossm_devices if isinstance(raw_ossm_devices, list) else []
+            )
+            ossm_devices: dict[int, OssmDeviceData] = {}
+            for dev in ossm_device_list:
+                dev_id = dev.get("id")
+                if dev_id is not None:
+                    ossm_devices[dev_id] = OssmDeviceData(device_info=dev)
 
         if ossm_devices:
+            prev_ossm = next(iter(prev.ossm_devices.values()), None) if prev else None
+
             ossm_sessions = await self._safe_fetch(
-                self.client.async_get_ossm_sessions(), fallback=[]
+                self.client.async_get_ossm_sessions(),
+                fallback=prev_ossm.sessions if prev_ossm else [],
             )
             ossm_patterns = await self._safe_fetch(
-                self.client.async_get_ossm_patterns(), fallback=[]
+                self.client.async_get_ossm_patterns(),
+                fallback=prev_ossm.patterns if prev_ossm else [],
             )
             ossm_settings = await self._safe_fetch(
-                self.client.async_get_ossm_settings(), fallback=None
+                self.client.async_get_ossm_settings(),
+                fallback=prev_ossm.settings if prev_ossm else None,
             )
             ossm_firmware = await self._safe_fetch(
-                self.client.async_get_ossm_firmware(), fallback=None
+                self.client.async_get_ossm_firmware(),
+                fallback=prev_ossm.firmware if prev_ossm else None,
             )
 
-            # Distribute sessions/patterns to devices if possible;
-            # otherwise assign all to every device (API may not have per-device filtering)
             for dev_id, dev_data in ossm_devices.items():
                 dev_data.sessions = (
                     ossm_sessions if isinstance(ossm_sessions, list) else []
@@ -232,29 +247,39 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
         # ------------------------------------------------------------------
         raw_lkbx_devices = await self._safe_fetch(
             self.client.async_get_lkbx_devices(),
-            fallback=[],
+            fallback=None,
         )
-        lkbx_device_list: list[dict[str, Any]] = (
-            raw_lkbx_devices if isinstance(raw_lkbx_devices, list) else []
-        )
-        lkbx_devices: dict[int, LkbxDeviceData] = {}
-        for dev in lkbx_device_list:
-            dev_id = dev.get("id")
-            if dev_id is not None:
-                lkbx_devices[dev_id] = LkbxDeviceData(device_info=dev)
+
+        if raw_lkbx_devices is None:
+            lkbx_devices = dict(prev.lkbx_devices) if prev else {}
+        else:
+            lkbx_device_list: list[dict[str, Any]] = (
+                raw_lkbx_devices if isinstance(raw_lkbx_devices, list) else []
+            )
+            lkbx_devices: dict[int, LkbxDeviceData] = {}
+            for dev in lkbx_device_list:
+                dev_id = dev.get("id")
+                if dev_id is not None:
+                    lkbx_devices[dev_id] = LkbxDeviceData(device_info=dev)
 
         if lkbx_devices:
+            prev_lkbx = next(iter(prev.lkbx_devices.values()), None) if prev else None
+
             lkbx_sessions = await self._safe_fetch(
-                self.client.async_get_lkbx_sessions(), fallback=[]
+                self.client.async_get_lkbx_sessions(),
+                fallback=prev_lkbx.sessions if prev_lkbx else [],
             )
             lkbx_latest_session = await self._safe_fetch(
-                self.client.async_get_lkbx_sessions_latest(), fallback=None
+                self.client.async_get_lkbx_sessions_latest(),
+                fallback=prev_lkbx.latest_session if prev_lkbx else None,
             )
             lkbx_templates = await self._safe_fetch(
-                self.client.async_get_lkbx_templates(), fallback=[]
+                self.client.async_get_lkbx_templates(),
+                fallback=prev_lkbx.templates if prev_lkbx else [],
             )
             lkbx_active_template = await self._safe_fetch(
-                self.client.async_get_lkbx_templates_active(), fallback=None
+                self.client.async_get_lkbx_templates_active(),
+                fallback=prev_lkbx.active_template if prev_lkbx else None,
             )
 
             for dev_id, dev_data in lkbx_devices.items():

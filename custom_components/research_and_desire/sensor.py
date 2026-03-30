@@ -575,6 +575,9 @@ OSSM_SENSOR_DESCRIPTIONS: tuple[ResearchAndDesireSensorDescription, ...] = (
 def _lkbx_locked(d: LkbxDeviceData) -> str | None:
     if d.device_info is None:
         return None
+    # Active template is the most reliable indicator of lock state
+    if d.active_template is not None:
+        return "Locked"
     locked = d.device_info.get("locked")
     if locked is None:
         return None
