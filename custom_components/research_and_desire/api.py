@@ -137,6 +137,19 @@ class ResearchAndDesireApiClient:
         """Alias for async_get_dtt_templates_active (backward compat)."""
         return await self.async_get_dtt_templates_active()
 
+    async def async_get_dtt_templates(self) -> list[dict[str, Any]]:
+        """List all DTT training templates."""
+        result = await self._request("GET", "/dtt/templates")
+        return _extract_list(result)
+
+    async def async_activate_dtt_template(self, template_id: int) -> dict[str, Any]:
+        """Activate a DTT training template."""
+        return await self._request("POST", f"/dtt/templates/{template_id}", json={"isActive": True})
+
+    async def async_update_dtt_template(self, template_id: int, **fields: Any) -> dict[str, Any]:
+        """Update a DTT training template (partial PATCH)."""
+        return await self._request("PATCH", f"/dtt/templates/{template_id}", json=fields)
+
     # ------------------------------------------------------------------
     # OSSM methods
     # ------------------------------------------------------------------
@@ -207,6 +220,36 @@ class ResearchAndDesireApiClient:
         if isinstance(result, dict) and result.get("data") is None and "message" in result:
             return None
         return result
+
+    # ------------------------------------------------------------------
+    # LKBX session management
+    # ------------------------------------------------------------------
+
+    async def async_get_lkbx_session_current(self) -> dict[str, Any] | None:
+        """Get the active lock session with start/end times and lock state."""
+        result = await self._request("GET", "/lkbx/session/current")
+        if result is None:
+            return None
+        if isinstance(result, dict) and result.get("data") is None and "message" in result:
+            return None
+        return result
+
+    async def async_lkbx_lock(
+        self, lock_settings_id: int, is_test_lock: bool | None = None
+    ) -> dict[str, Any]:
+        """Lock the lockbox using a template."""
+        body: dict[str, Any] = {"action": "lock", "lockSettingsId": lock_settings_id}
+        if is_test_lock is not None:
+            body["isTestLock"] = is_test_lock
+        return await self._request("POST", "/lkbx/session/current", json=body)
+
+    async def async_lkbx_unlock(self) -> dict[str, Any]:
+        """Unlock the lockbox."""
+        return await self._request("POST", "/lkbx/session/current", json={"action": "unlock"})
+
+    async def async_lkbx_modify_session(self, duration: int) -> dict[str, Any]:
+        """Modify the active lock session duration."""
+        return await self._request("PATCH", "/lkbx/session/current", json={"duration": duration})
 
     # ------------------------------------------------------------------
     # Validation

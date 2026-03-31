@@ -792,6 +792,35 @@ def _lkbx_break_keyholder_only(d: LkbxDeviceData) -> str | None:
     return "Yes" if val else "No"
 
 
+def _lkbx_lock_state(d: LkbxDeviceData) -> str | None:
+    """Lock state from the active session (pending/locked/completed/abandoned/break)."""
+    if d.active_session is None:
+        return "unlocked" if d.active_template is None else None
+    return d.active_session.get("lockState")
+
+
+def _lkbx_lock_start_time(d: LkbxDeviceData) -> datetime | None:
+    if d.active_session is None:
+        return None
+    return _parse_datetime(d.active_session.get("startDate"))
+
+
+def _lkbx_lock_end_time(d: LkbxDeviceData) -> datetime | None:
+    if d.active_session is None:
+        return None
+    return _parse_datetime(d.active_session.get("endDate"))
+
+
+def _lkbx_time_remaining(d: LkbxDeviceData) -> float | None:
+    if d.active_session is None:
+        return None
+    end = _parse_datetime(d.active_session.get("endDate"))
+    if end is None:
+        return None
+    remaining = (end - datetime.now(timezone.utc)).total_seconds()
+    return max(0, round(remaining))
+
+
 def _lkbx_template_count(d: LkbxDeviceData) -> int:
     return len(d.templates) if d.templates else 0
 
@@ -951,6 +980,30 @@ LKBX_SENSOR_DESCRIPTIONS: tuple[ResearchAndDesireSensorDescription, ...] = (
         key="lkbx_break_keyholder_only",
         translation_key="lkbx_break_keyholder_only",
         value_fn=_lkbx_break_keyholder_only,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_lock_state",
+        translation_key="lkbx_lock_state",
+        value_fn=_lkbx_lock_state,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_lock_start_time",
+        translation_key="lkbx_lock_start_time",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=_lkbx_lock_start_time,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_lock_end_time",
+        translation_key="lkbx_lock_end_time",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=_lkbx_lock_end_time,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_time_remaining",
+        translation_key="lkbx_time_remaining",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="s",
+        value_fn=_lkbx_time_remaining,
     ),
 )
 

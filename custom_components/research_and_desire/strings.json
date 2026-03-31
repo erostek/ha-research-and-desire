@@ -79,7 +79,26 @@
       "template_pass_threshold": { "name": "Pass Threshold" },
       "template_total_duration": { "name": "Template Total Duration" },
       "template_failure_text": { "name": "Failure Text" },
-      "template_updated_at": { "name": "Template Updated" }
+      "template_updated_at": { "name": "Template Updated" },
+      "lkbx_lock_state": { "name": "Lock State" },
+      "lkbx_lock_start_time": { "name": "Lock Start Time" },
+      "lkbx_lock_end_time": { "name": "Lock End Time" },
+      "lkbx_time_remaining": { "name": "Time Remaining" }
+    },
+    "lock": {
+      "lkbx_lock": { "name": "Lock" }
+    },
+    "number": {
+      "dtt_target_depth_control": { "name": "Target Depth" },
+      "dtt_target_window_control": { "name": "Target Window" },
+      "lkbx_duration_control": { "name": "Lock Duration" }
+    },
+    "switch": {
+      "dtt_hands_free_mode": { "name": "Hands-Free Mode" }
+    },
+    "select": {
+      "dtt_template_select": { "name": "Active Template" },
+      "lkbx_template_select": { "name": "Lock Template" }
     },
     "event": {
       "session_completed": {

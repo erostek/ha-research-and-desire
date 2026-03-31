@@ -25,6 +25,7 @@ class DttDeviceData:
     latest_session: dict[str, Any] | None = None
     session_detail: dict[str, Any] | None = None
     active_template: dict[str, Any] | None = None
+    all_templates: list[dict[str, Any]] = field(default_factory=list)
     new_session_completed: bool = False
 
 
@@ -48,6 +49,7 @@ class LkbxDeviceData:
     latest_session: dict[str, Any] | None = None
     templates: list[dict[str, Any]] = field(default_factory=list)
     active_template: dict[str, Any] | None = None
+    active_session: dict[str, Any] | None = None  # from GET /lkbx/session/current
     new_lock_event: str | None = None  # "locked" or "unlocked" on transition
 
 
@@ -140,6 +142,12 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
             fallback=prev_dtt.active_template if prev_dtt else None,
         )
 
+        # Fetch all templates for selection
+        all_dtt_templates = await self._safe_fetch(
+            self.client.async_get_dtt_templates(),
+            fallback=prev_dtt.all_templates if prev_dtt else [],
+        )
+
         _LOGGER.debug(
             "Poll: dtt_devices=%d, session=%s, template=%s",
             len(dtt_devices),
@@ -181,10 +189,13 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
             if isinstance(latest_session, dict)
             else None
         )
+        all_dtt_templates_list = all_dtt_templates if isinstance(all_dtt_templates, list) else []
+
         if trainer_id is not None and trainer_id in dtt_devices:
             dtt_devices[trainer_id].latest_session = latest_session
             dtt_devices[trainer_id].session_detail = session_detail
             dtt_devices[trainer_id].active_template = active_template
+            dtt_devices[trainer_id].all_templates = all_dtt_templates_list
             dtt_devices[trainer_id].new_session_completed = new_session_completed
         elif dtt_devices:
             # Fallback: assign to the first device if trainer_id doesn't match
@@ -192,6 +203,7 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
             dtt_devices[first_id].latest_session = latest_session
             dtt_devices[first_id].session_detail = session_detail
             dtt_devices[first_id].active_template = active_template
+            dtt_devices[first_id].all_templates = all_dtt_templates_list
             dtt_devices[first_id].new_session_completed = new_session_completed
 
         # ------------------------------------------------------------------
@@ -283,6 +295,10 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
                 self.client.async_get_lkbx_templates_active(),
                 fallback=prev_lkbx.active_template if prev_lkbx else None,
             )
+            lkbx_active_session = await self._safe_fetch(
+                self.client.async_get_lkbx_session_current(),
+                fallback=prev_lkbx.active_session if prev_lkbx else None,
+            )
 
             # Detect lock state transitions
             is_locked = lkbx_active_template is not None
@@ -300,6 +316,7 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
                     lkbx_templates if isinstance(lkbx_templates, list) else []
                 )
                 dev_data.active_template = lkbx_active_template
+                dev_data.active_session = lkbx_active_session
                 dev_data.new_lock_event = new_lock_event
 
         # ------------------------------------------------------------------
