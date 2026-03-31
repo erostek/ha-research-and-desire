@@ -48,6 +48,7 @@ class LkbxDeviceData:
     latest_session: dict[str, Any] | None = None
     templates: list[dict[str, Any]] = field(default_factory=list)
     active_template: dict[str, Any] | None = None
+    new_lock_event: str | None = None  # "locked" or "unlocked" on transition
 
 
 @dataclass
@@ -72,6 +73,7 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
         self.client = client
         self._last_session_id: int | None = None
         self._first_poll = True
+        self._last_lkbx_locked: bool | None = None  # Track lock state transitions
 
     async def _async_update_data(self) -> ResearchAndDesireData:
         """Fetch data from the API sequentially."""
@@ -137,18 +139,6 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
             self.client.async_get_dtt_templates_active(),
             fallback=prev_dtt.active_template if prev_dtt else None,
         )
-
-        # Log full API shapes once for sensor development
-        if self._first_poll or not prev:
-            _LOGGER.warning(
-                "DTT API discovery — device_info: %s", raw_dtt_devices
-            )
-            _LOGGER.warning(
-                "DTT API discovery — latest_session: %s", latest_session
-            )
-            _LOGGER.warning(
-                "DTT API discovery — active_template: %s", active_template
-            )
 
         _LOGGER.debug(
             "Poll: dtt_devices=%d, session=%s, template=%s",
@@ -294,24 +284,12 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
                 fallback=prev_lkbx.active_template if prev_lkbx else None,
             )
 
-            # Temporary: log every poll so we can capture locked state
-            _LOGGER.warning(
-                "LKBX API discovery — device_info: %s", raw_lkbx_devices
-            )
-            _LOGGER.warning(
-                "LKBX API discovery — active_template: %s", lkbx_active_template
-            )
-            _LOGGER.warning(
-                "LKBX API discovery — latest_session: %s", lkbx_latest_session
-            )
-            _LOGGER.warning(
-                "LKBX API discovery — sessions[0]: %s",
-                lkbx_sessions[0] if isinstance(lkbx_sessions, list) and lkbx_sessions else None,
-            )
-            _LOGGER.warning(
-                "LKBX API discovery — templates[0]: %s",
-                lkbx_templates[0] if isinstance(lkbx_templates, list) and lkbx_templates else None,
-            )
+            # Detect lock state transitions
+            is_locked = lkbx_active_template is not None
+            new_lock_event: str | None = None
+            if self._last_lkbx_locked is not None and is_locked != self._last_lkbx_locked:
+                new_lock_event = "locked" if is_locked else "unlocked"
+            self._last_lkbx_locked = is_locked
 
             for dev_id, dev_data in lkbx_devices.items():
                 dev_data.sessions = (
@@ -322,6 +300,7 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
                     lkbx_templates if isinstance(lkbx_templates, list) else []
                 )
                 dev_data.active_template = lkbx_active_template
+                dev_data.new_lock_event = new_lock_event
 
         # ------------------------------------------------------------------
         # Build final result

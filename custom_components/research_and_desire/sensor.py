@@ -285,10 +285,47 @@ def _dtt_active_template_attrs(d: DttDeviceData) -> dict[str, Any]:
                 "duration": seg.get("duration"),
                 "targetDepth": seg.get("targetDepth"),
                 "targetWindow": seg.get("targetWindow"),
+                "speed": seg.get("speed"),
+                "repeat": seg.get("repeat"),
+                "passGradeThreshold": seg.get("passGradeThreshold"),
+                "failureText": seg.get("failureText"),
             }
             for seg in template_segments
         ]
     }
+
+
+def _dtt_template_pass_threshold(d: DttDeviceData) -> float | None:
+    if d.active_template is None:
+        return None
+    segments = d.active_template.get("Segment", [])
+    thresholds = [s["passGradeThreshold"] for s in segments if s.get("passGradeThreshold") is not None and s.get("passGradeThreshold") > 0]
+    if not thresholds:
+        return None
+    return round(sum(thresholds) / len(thresholds), 1)
+
+
+def _dtt_template_total_duration(d: DttDeviceData) -> float | None:
+    if d.active_template is None:
+        return None
+    segments = d.active_template.get("Segment", [])
+    if not segments:
+        return None
+    return sum(s.get("duration", 0) * s.get("repeat", 1) for s in segments)
+
+
+def _dtt_template_failure_text(d: DttDeviceData) -> str | None:
+    if d.active_template is None:
+        return None
+    segments = d.active_template.get("Segment", [])
+    texts = [s["failureText"] for s in segments if s.get("failureText")]
+    return texts[0] if texts else None
+
+
+def _dtt_template_updated_at(d: DttDeviceData) -> datetime | None:
+    if d.active_template is None:
+        return None
+    return _parse_datetime(d.active_template.get("updatedAt"))
 
 
 # --- Additional DTT session analysis ---
@@ -511,6 +548,30 @@ DTT_SENSOR_DESCRIPTIONS: tuple[ResearchAndDesireSensorDescription, ...] = (
         native_unit_of_measurement="%",
         value_fn=_dtt_session_pass_rate,
     ),
+    ResearchAndDesireSensorDescription(
+        key="template_pass_threshold",
+        translation_key="template_pass_threshold",
+        native_unit_of_measurement="%",
+        value_fn=_dtt_template_pass_threshold,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="template_total_duration",
+        translation_key="template_total_duration",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="s",
+        value_fn=_dtt_template_total_duration,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="template_failure_text",
+        translation_key="template_failure_text",
+        value_fn=_dtt_template_failure_text,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="template_updated_at",
+        translation_key="template_updated_at",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=_dtt_template_updated_at,
+    ),
 )
 
 
@@ -716,6 +777,21 @@ def _lkbx_publicly_listed(d: LkbxDeviceData) -> str | None:
     return "Yes" if val else "No"
 
 
+def _lkbx_shame_time_add(d: LkbxDeviceData) -> int | None:
+    if d.active_template is None:
+        return None
+    return d.active_template.get("shameTimeAdd")
+
+
+def _lkbx_break_keyholder_only(d: LkbxDeviceData) -> str | None:
+    if d.active_template is None:
+        return None
+    val = d.active_template.get("breakKeyholderOnly")
+    if val is None:
+        return None
+    return "Yes" if val else "No"
+
+
 def _lkbx_template_count(d: LkbxDeviceData) -> int:
     return len(d.templates) if d.templates else 0
 
@@ -863,6 +939,18 @@ LKBX_SENSOR_DESCRIPTIONS: tuple[ResearchAndDesireSensorDescription, ...] = (
         key="lkbx_session_count",
         translation_key="lkbx_session_count",
         value_fn=_lkbx_session_count,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_shame_time_add",
+        translation_key="lkbx_shame_time_add",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="s",
+        value_fn=_lkbx_shame_time_add,
+    ),
+    ResearchAndDesireSensorDescription(
+        key="lkbx_break_keyholder_only",
+        translation_key="lkbx_break_keyholder_only",
+        value_fn=_lkbx_break_keyholder_only,
     ),
 )
 

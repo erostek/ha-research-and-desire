@@ -73,7 +73,13 @@
       "lkbx_time_displayed": { "name": "Time Displayed" },
       "lkbx_publicly_listed": { "name": "Publicly Listed" },
       "lkbx_template_count": { "name": "Template Count" },
-      "lkbx_session_count": { "name": "Session Count" }
+      "lkbx_session_count": { "name": "Session Count" },
+      "lkbx_shame_time_add": { "name": "Shame Time Penalty" },
+      "lkbx_break_keyholder_only": { "name": "Keyholder-Only Breaks" },
+      "template_pass_threshold": { "name": "Pass Threshold" },
+      "template_total_duration": { "name": "Template Total Duration" },
+      "template_failure_text": { "name": "Failure Text" },
+      "template_updated_at": { "name": "Template Updated" }
     },
     "event": {
       "session_completed": {
@@ -84,6 +90,17 @@
               "session_passed": "Session Passed",
               "session_failed": "Session Failed",
               "session_completed": "Session Completed"
+            }
+          }
+        }
+      },
+      "lockbox_state_changed": {
+        "name": "Lock State",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "lockbox_locked": "Locked",
+              "lockbox_unlocked": "Unlocked"
             }
           }
         }

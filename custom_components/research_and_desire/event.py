@@ -12,14 +12,16 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import ResearchAndDesireConfigEntry
-from .const import DOMAIN, PRODUCT_DTT
-from .coordinator import DttDeviceData, ResearchAndDesireCoordinator
+from .const import DOMAIN, PRODUCT_DTT, PRODUCT_LKBX
+from .coordinator import DttDeviceData, LkbxDeviceData, ResearchAndDesireCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 EVENT_SESSION_PASSED = "session_passed"
 EVENT_SESSION_FAILED = "session_failed"
 EVENT_SESSION_COMPLETED = "session_completed"
+EVENT_LOCKBOX_LOCKED = "lockbox_locked"
+EVENT_LOCKBOX_UNLOCKED = "lockbox_unlocked"
 
 
 async def async_setup_entry(
@@ -29,11 +31,13 @@ async def async_setup_entry(
 ) -> None:
     """Set up Research and Desire event entities."""
     coordinator = entry.runtime_data
-    entities = []
+    entities: list[EventEntity] = []
     data = coordinator.data
     if data:
         for device_id in data.dtt_devices:
             entities.append(ResearchAndDesireSessionEvent(coordinator, device_id))
+        for device_id in data.lkbx_devices:
+            entities.append(ResearchAndDesireLockEvent(coordinator, device_id))
     async_add_entities(entities)
 
 
@@ -110,5 +114,64 @@ class ResearchAndDesireSessionEvent(
             self._trigger_event(EVENT_SESSION_FAILED, event_data)
         else:
             self._trigger_event(EVENT_SESSION_COMPLETED, event_data)
+
+        self.async_write_ha_state()
+
+
+class ResearchAndDesireLockEvent(
+    CoordinatorEntity[ResearchAndDesireCoordinator], EventEntity
+):
+    """Event entity that fires when the Lockbox locks or unlocks."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "lockbox_state_changed"
+    _attr_event_types = [EVENT_LOCKBOX_LOCKED, EVENT_LOCKBOX_UNLOCKED]
+
+    def __init__(
+        self,
+        coordinator: ResearchAndDesireCoordinator,
+        device_id: int,
+    ) -> None:
+        super().__init__(coordinator)
+        self._device_id = device_id
+        self._attr_unique_id = f"lkbx_{device_id}_lock_event"
+
+        device_data = coordinator.data.lkbx_devices.get(device_id) if coordinator.data else None
+        dev_info = device_data.device_info if device_data else {}
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"lkbx_{device_id}")},
+            name="Lockbox",
+            manufacturer="Research and Desire",
+            model="Lockbox",
+        )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            super()._handle_coordinator_update()
+            return
+
+        device_data: LkbxDeviceData | None = self.coordinator.data.lkbx_devices.get(self._device_id)
+        if device_data is None or device_data.new_lock_event is None:
+            super()._handle_coordinator_update()
+            return
+
+        template = device_data.active_template
+        event_data: dict[str, Any] = {}
+
+        if device_data.new_lock_event == "locked" and template:
+            event_data = {
+                "lock_name": template.get("name"),
+                "duration": template.get("duration"),
+                "is_random_duration": template.get("isRandomDuration"),
+                "min_duration": template.get("minDuration"),
+                "max_duration": template.get("maxDuration"),
+                "is_test_lock": template.get("isTestLock"),
+            }
+            self._trigger_event(EVENT_LOCKBOX_LOCKED, event_data)
+        else:
+            self._trigger_event(EVENT_LOCKBOX_UNLOCKED, event_data)
 
         self.async_write_ha_state()
