@@ -1,5 +1,5 @@
 ###############################################################################
-# Lockbox Dashboard
+# Lockbox Dashboard (Sections Layout)
 #
 # How to use:
 # 1. Go to Settings > Dashboards > Add Dashboard
@@ -14,128 +14,146 @@
 views:
   - title: Lockbox
     icon: mdi:lock
-    cards:
-      # --- Lock Status Banner ---
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.lockbox_lock_status
-            state: "Locked"
-        card:
-          type: markdown
-          content: |
-            # 🔒 LOCKED
-          style: |
-            ha-card { background-color: #b71c1c; color: white; text-align: center; }
+    type: sections
+    max_columns: 3
+    sections:
+      # =====================================================================
+      # COLUMN 1 — Status & Controls
+      # =====================================================================
 
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.lockbox_lock_status
-            state: "Unlocked"
-        card:
-          type: markdown
-          content: |
-            # 🔓 UNLOCKED
-          style: |
-            ha-card { background-color: #1b5e20; color: white; text-align: center; }
+      - type: grid
+        cards:
+          # --- Lock Status Banner ---
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lockbox_lock_status
+                state: "Locked"
+            card:
+              type: markdown
+              content: |
+                # 🔒 LOCKED
+              style: |
+                ha-card { background-color: #b71c1c; color: white; text-align: center; }
 
-      # --- Controls ---
-      - type: entities
-        title: Controls
-        icon: mdi:tune
-        entities:
-          - entity: lock.lockbox_lock
-            name: Lock
-          - entity: select.lockbox_lock_template
-            name: Lock Template
-          - entity: number.lockbox_lock_duration
-            name: Duration (modify)
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lockbox_lock_status
+                state: "Unlocked"
+            card:
+              type: markdown
+              content: |
+                # 🔓 UNLOCKED
+              style: |
+                ha-card { background-color: #1b5e20; color: white; text-align: center; }
 
-      # --- Lock Status Entity ---
-      - type: entity
-        entity: sensor.lockbox_lock_status
-        name: Lock Status
-        icon: mdi:lock
+          # --- Controls ---
+          - type: heading
+            heading: Controls
+            icon: mdi:tune
+          - type: entities
+            entities:
+              - entity: lock.lockbox_lock
+                name: Lock
+              - entity: select.lockbox_lock_template
+                name: Lock Template
+              - entity: number.lockbox_lock_duration
+                name: Duration (modify)
 
-      # --- Active Lock Info ---
-      - type: entities
-        title: Active Lock
-        icon: mdi:lock-clock
-        entities:
-          - entity: sensor.lockbox_active_lock
-            name: Lock Template
-          - entity: sensor.lockbox_lock_duration
-            name: Duration
-          - entity: sensor.lockbox_min_lock_duration
-            name: Min Duration
-          - entity: sensor.lockbox_max_lock_duration
-            name: Max Duration
-          - entity: sensor.lockbox_random_duration
-            name: Random Duration
+          # --- Lock Session ---
+          - type: heading
+            heading: Lock Session
+            icon: mdi:timer-sand
+          - type: entities
+            entities:
+              - entity: sensor.lockbox_lock_state
+                name: State
+              - entity: sensor.lockbox_lock_start_time
+                name: Started
+              - entity: sensor.lockbox_lock_end_time
+                name: Ends
+              - entity: sensor.lockbox_time_remaining
+                name: Time Remaining
 
-      # --- Lock Session ---
-      - type: entities
-        title: Lock Session
-        icon: mdi:timer-sand
-        entities:
-          - entity: sensor.lockbox_lock_state
-            name: State
-          - entity: sensor.lockbox_lock_start_time
-            name: Started
-          - entity: sensor.lockbox_lock_end_time
-            name: Ends
-          - entity: sensor.lockbox_time_remaining
-            name: Time Remaining
+      # =====================================================================
+      # COLUMN 2 — Lock Configuration
+      # =====================================================================
 
-      # --- Lock Settings ---
-      - type: entities
-        title: Lock Settings
-        icon: mdi:cog
-        entities:
-          - entity: sensor.lockbox_breaks_enabled
-            name: Breaks
-          - entity: sensor.lockbox_break_regularity
-            name: Break Every
-          - entity: sensor.lockbox_max_break_duration
-            name: Max Break
-          - entity: sensor.lockbox_break_penalty
-            name: Break Penalty
-          - entity: sensor.lockbox_keyholder_only_breaks
-            name: Keyholder-Only Breaks
-          - entity: sensor.lockbox_emergency_unlock
-            name: Emergency Unlock
-          - entity: sensor.lockbox_time_displayed
-            name: Time Displayed
+      - type: grid
+        cards:
+          - type: heading
+            heading: Active Lock
+            icon: mdi:lock-clock
+          - type: entities
+            entities:
+              - entity: sensor.lockbox_active_lock
+                name: Lock Template
+              - entity: sensor.lockbox_lock_duration
+                name: Duration
+              - entity: sensor.lockbox_min_lock_duration
+                name: Min Duration
+              - entity: sensor.lockbox_max_lock_duration
+                name: Max Duration
+              - entity: sensor.lockbox_random_duration
+                name: Random Duration
 
-      # --- Integration Features ---
-      - type: entities
-        title: Features
-        icon: mdi:feature-search
-        entities:
-          - entity: sensor.lockbox_deepthroat_enabled
-            name: DTT Integration
-          - entity: sensor.lockbox_dtt_time_reduction
-            name: DTT Time Reduction
-          - entity: sensor.lockbox_shame_enabled
-            name: Shame Mode
-          - entity: sensor.lockbox_shame_time_penalty
-            name: Shame Time Penalty
-          - entity: sensor.lockbox_publicly_listed
-            name: Publicly Listed
-          - entity: sensor.lockbox_test_lock
-            name: Test Lock
+          - type: heading
+            heading: Break Settings
+            icon: mdi:coffee
+          - type: entities
+            entities:
+              - entity: sensor.lockbox_breaks_enabled
+                name: Breaks
+              - entity: sensor.lockbox_break_regularity
+                name: Break Every
+              - entity: sensor.lockbox_max_break_duration
+                name: Max Break
+              - entity: sensor.lockbox_break_penalty
+                name: Break Penalty
+              - entity: sensor.lockbox_keyholder_only_breaks
+                name: Keyholder-Only Breaks
 
-      # --- Device Info ---
-      - type: entities
-        title: Device
-        icon: mdi:information
-        entities:
-          - entity: sensor.lockbox_mac_address
-            name: MAC Address
-          - entity: sensor.lockbox_last_seen
-            name: Last Seen
-          - entity: sensor.lockbox_template_count
-            name: Templates
-          - entity: sensor.lockbox_session_count
-            name: Sessions
+      # =====================================================================
+      # COLUMN 3 — Features & Device
+      # =====================================================================
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Features
+            icon: mdi:feature-search
+          - type: entities
+            entities:
+              - entity: sensor.lockbox_deepthroat_enabled
+                name: DTT Integration
+              - entity: sensor.lockbox_dtt_time_reduction
+                name: DTT Time Reduction
+              - entity: sensor.lockbox_shame_enabled
+                name: Shame Mode
+              - entity: sensor.lockbox_shame_time_penalty
+                name: Shame Time Penalty
+              - entity: sensor.lockbox_emergency_unlock
+                name: Emergency Unlock
+              - entity: sensor.lockbox_time_displayed
+                name: Time Displayed
+              - entity: sensor.lockbox_publicly_listed
+                name: Publicly Listed
+              - entity: sensor.lockbox_test_lock
+                name: Test Lock
+
+          - type: heading
+            heading: Device
+            icon: mdi:information
+          - type: entities
+            entities:
+              - entity: sensor.lockbox_lock_status
+                name: Lock Status
+              - entity: sensor.lockbox_mac_address
+                name: MAC Address
+              - entity: sensor.lockbox_last_seen
+                name: Last Seen
+              - entity: sensor.lockbox_template_count
+                name: Templates
+              - entity: sensor.lockbox_session_count
+                name: Sessions

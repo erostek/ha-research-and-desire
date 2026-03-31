@@ -1,5 +1,5 @@
 ###############################################################################
-# DTT Training Dashboard
+# DTT Training Dashboard (Sections Layout)
 #
 # How to use:
 # 1. Go to Settings > Dashboards > Add Dashboard
@@ -14,179 +14,197 @@
 views:
   - title: DTT Training
     icon: mdi:dumbbell
-    cards:
-      # --- Header ---
-      - type: markdown
-        content: |
-          # Deepthroat Trainer
-          Real-time training data from Research and Desire
+    type: sections
+    max_columns: 3
+    sections:
+      # =====================================================================
+      # COLUMN 1 — Controls & Template
+      # =====================================================================
 
       # --- Controls ---
-      - type: entities
-        title: Controls
-        icon: mdi:tune
-        entities:
-          - entity: select.deepthroat_trainer_active_template
-            name: Active Template
-          - entity: number.deepthroat_trainer_target_depth
-            name: Target Depth
-          - entity: number.deepthroat_trainer_target_window
-            name: Target Window
-          - entity: switch.deepthroat_trainer_hands_free_mode
-            name: Hands-Free Mode
-
-      # --- Session Status Row ---
-      - type: horizontal-stack
+      - type: grid
         cards:
-          - type: entity
-            entity: sensor.deepthroat_trainer_latest_session_status
-            name: Status
-            icon: mdi:check-circle
-          - type: entity
+          - type: heading
+            heading: Controls
+            icon: mdi:tune
+          - type: entities
+            entities:
+              - entity: select.deepthroat_trainer_active_template
+                name: Active Template
+              - entity: number.deepthroat_trainer_target_depth
+                name: Target Depth
+              - entity: number.deepthroat_trainer_target_window
+                name: Target Window
+              - entity: switch.deepthroat_trainer_hands_free_mode
+                name: Hands-Free Mode
+
+          # --- Grade Gauge ---
+          - type: gauge
             entity: sensor.deepthroat_trainer_latest_session_grade
-            name: Grade
-            icon: mdi:percent
-          - type: entity
-            entity: sensor.deepthroat_trainer_latest_session_points
-            name: Points
-            icon: mdi:star
+            name: Session Grade
+            min: 0
+            max: 100
+            severity:
+              green: 80
+              yellow: 60
+              red: 0
+            needle: true
 
-      # --- Session Detail Cards ---
-      - type: horizontal-stack
+          # --- Grade History ---
+          - type: history-graph
+            title: Grade History
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_latest_session_grade
+                name: Grade
+
+      # =====================================================================
+      # COLUMN 2 — Session Results
+      # =====================================================================
+
+      - type: grid
         cards:
-          - type: entity
-            entity: sensor.deepthroat_trainer_latest_session_date
-            name: Date
-            icon: mdi:calendar
-          - type: entity
-            entity: sensor.deepthroat_trainer_latest_session_duration
-            name: Duration
-            icon: mdi:timer
-          - type: entity
-            entity: sensor.deepthroat_trainer_latest_session_segments
-            name: Segments
-            icon: mdi:segment
+          - type: heading
+            heading: Latest Session
+            icon: mdi:clipboard-check
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.deepthroat_trainer_latest_session_status
+                name: Status
+                icon: mdi:check-circle
+              - type: entity
+                entity: sensor.deepthroat_trainer_latest_session_grade
+                name: Grade
+                icon: mdi:percent
+              - type: entity
+                entity: sensor.deepthroat_trainer_latest_session_points
+                name: Points
+                icon: mdi:star
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.deepthroat_trainer_latest_session_date
+                name: Date
+                icon: mdi:calendar
+              - type: entity
+                entity: sensor.deepthroat_trainer_latest_session_duration
+                name: Duration
+                icon: mdi:timer
+              - type: entity
+                entity: sensor.deepthroat_trainer_latest_session_segments
+                name: Segments
+                icon: mdi:segment
 
-      # --- Grade Gauge ---
-      - type: gauge
-        entity: sensor.deepthroat_trainer_latest_session_grade
-        name: Session Grade
-        min: 0
-        max: 100
-        severity:
-          green: 80
-          yellow: 60
-          red: 0
-        needle: true
-
-      # --- Segment Analysis ---
-      - type: horizontal-stack
-        cards:
-          - type: entity
-            entity: sensor.deepthroat_trainer_best_segment_grade
-            name: Best Grade
-            icon: mdi:arrow-up-bold
-          - type: entity
-            entity: sensor.deepthroat_trainer_worst_segment_grade
-            name: Worst Grade
-            icon: mdi:arrow-down-bold
-          - type: entity
-            entity: sensor.deepthroat_trainer_segment_pass_rate
-            name: Pass Rate
+          # --- Segment Analysis ---
+          - type: heading
+            heading: Segment Analysis
             icon: mdi:chart-donut
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.deepthroat_trainer_best_segment_grade
+                name: Best Grade
+                icon: mdi:arrow-up-bold
+              - type: entity
+                entity: sensor.deepthroat_trainer_worst_segment_grade
+                name: Worst Grade
+                icon: mdi:arrow-down-bold
+              - type: entity
+                entity: sensor.deepthroat_trainer_segment_pass_rate
+                name: Pass Rate
+                icon: mdi:chart-donut
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.deepthroat_trainer_passed_segments
+                name: Passed
+                icon: mdi:check-circle-outline
+              - type: entity
+                entity: sensor.deepthroat_trainer_failed_segments
+                name: Failed
+                icon: mdi:close-circle-outline
 
-      # --- Passed / Failed Segments ---
-      - type: horizontal-stack
-        cards:
-          - type: entity
-            entity: sensor.deepthroat_trainer_passed_segments
-            name: Passed
-            icon: mdi:check-circle-outline
-          - type: entity
-            entity: sensor.deepthroat_trainer_failed_segments
-            name: Failed
-            icon: mdi:close-circle-outline
-
-      # --- Performance Metrics ---
-      - type: horizontal-stack
-        cards:
-          - type: entity
-            entity: sensor.deepthroat_trainer_session_total_reps
-            name: Total Reps
-            icon: mdi:repeat
-          - type: entity
-            entity: sensor.deepthroat_trainer_avg_speed
-            name: Avg Speed
+          # --- Performance Metrics ---
+          - type: heading
+            heading: Performance
             icon: mdi:speedometer
-          - type: entity
-            entity: sensor.deepthroat_trainer_longest_deepthroat
-            name: Longest DT
-            icon: mdi:arrow-expand-vertical
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.deepthroat_trainer_session_total_reps
+                name: Total Reps
+                icon: mdi:repeat
+              - type: entity
+                entity: sensor.deepthroat_trainer_avg_speed
+                name: Avg Speed
+                icon: mdi:speedometer
+              - type: entity
+                entity: sensor.deepthroat_trainer_longest_deepthroat
+                name: Longest DT
+                icon: mdi:arrow-expand-vertical
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.deepthroat_trainer_session_distance
+                name: Distance
+                icon: mdi:map-marker-distance
+              - type: entity
+                entity: sensor.deepthroat_trainer_avg_stroke_length
+                name: Stroke Length
+                icon: mdi:ruler
+              - type: entity
+                entity: sensor.deepthroat_trainer_max_speed
+                name: Max Speed
+                icon: mdi:speedometer-medium
 
-      # --- Performance Metrics (continued) ---
-      - type: horizontal-stack
+      # =====================================================================
+      # COLUMN 3 — Template Details & Device
+      # =====================================================================
+
+      - type: grid
         cards:
-          - type: entity
-            entity: sensor.deepthroat_trainer_session_distance
-            name: Distance
-            icon: mdi:map-marker-distance
-          - type: entity
-            entity: sensor.deepthroat_trainer_avg_stroke_length
-            name: Stroke Length
-            icon: mdi:ruler
-          - type: entity
-            entity: sensor.deepthroat_trainer_max_speed
-            name: Max Speed
-            icon: mdi:speedometer-medium
+          - type: heading
+            heading: Active Template
+            icon: mdi:file-document
+          - type: entities
+            entities:
+              - entity: sensor.deepthroat_trainer_active_template
+                name: Template
+              - entity: sensor.deepthroat_trainer_template_message
+                name: Message
+              - entity: sensor.deepthroat_trainer_template_tagline
+                name: Tagline
+              - entity: sensor.deepthroat_trainer_toy_tagline
+                name: Toy Tagline
+              - entity: sensor.deepthroat_trainer_target_depth
+                name: Target Depth
+              - entity: sensor.deepthroat_trainer_target_window
+                name: Target Window
+              - entity: sensor.deepthroat_trainer_hands_free_mode
+                name: Hands-Free
+              - entity: sensor.deepthroat_trainer_template_segments
+                name: Template Segments
+              - entity: sensor.deepthroat_trainer_pass_threshold
+                name: Pass Threshold
+              - entity: sensor.deepthroat_trainer_template_total_duration
+                name: Total Duration
+              - entity: sensor.deepthroat_trainer_failure_text
+                name: Failure Text
+              - entity: sensor.deepthroat_trainer_template_updated
+                name: Last Updated
 
-      # --- Active Template ---
-      - type: entities
-        title: Active Template
-        icon: mdi:file-document
-        entities:
-          - entity: sensor.deepthroat_trainer_active_template
-            name: Template
-          - entity: sensor.deepthroat_trainer_template_message
-            name: Message
-          - entity: sensor.deepthroat_trainer_template_tagline
-            name: Tagline
-          - entity: sensor.deepthroat_trainer_toy_tagline
-            name: Toy Tagline
-          - entity: sensor.deepthroat_trainer_target_depth
-            name: Target Depth
-          - entity: sensor.deepthroat_trainer_target_window
-            name: Target Window
-          - entity: sensor.deepthroat_trainer_hands_free_mode
-            name: Hands-Free
-          - entity: sensor.deepthroat_trainer_template_segments
-            name: Template Segments
-          - entity: sensor.deepthroat_trainer_pass_threshold
-            name: Pass Threshold
-          - entity: sensor.deepthroat_trainer_template_total_duration
-            name: Total Duration
-          - entity: sensor.deepthroat_trainer_failure_text
-            name: Failure Text
-          - entity: sensor.deepthroat_trainer_template_updated
-            name: Last Updated
-
-      # --- Device Info ---
-      - type: entities
-        title: Device
-        icon: mdi:information
-        entities:
-          - entity: sensor.deepthroat_trainer_serial_number
-            name: Serial Number
-          - entity: sensor.deepthroat_trainer_software_version
-            name: Firmware
-          - entity: sensor.deepthroat_trainer_last_seen
-            name: Last Seen
-          - entity: sensor.deepthroat_trainer_last_log
-            name: Last Log
-
-      # --- Session History (if you have recorder enabled) ---
-      - type: history-graph
-        title: Grade History
-        hours_to_show: 168
-        entities:
-          - entity: sensor.deepthroat_trainer_latest_session_grade
-            name: Grade
+          # --- Device Info ---
+          - type: heading
+            heading: Device
+            icon: mdi:information
+          - type: entities
+            entities:
+              - entity: sensor.deepthroat_trainer_serial_number
+                name: Serial Number
+              - entity: sensor.deepthroat_trainer_software_version
+                name: Firmware
+              - entity: sensor.deepthroat_trainer_last_seen
+                name: Last Seen
+              - entity: sensor.deepthroat_trainer_last_log
+                name: Last Log

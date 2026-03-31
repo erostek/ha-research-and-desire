@@ -1,5 +1,5 @@
 ###############################################################################
-# R&D Combined Overview Dashboard
+# R&D Combined Overview Dashboard (Sections Layout)
 #
 # Shows all Research and Desire devices at a glance: DTT + Lockbox + OSSM
 #
@@ -15,12 +15,18 @@
 views:
   - title: R&D Overview
     icon: mdi:heart-pulse
-    cards:
-      # --- DTT Quick Status ---
-      - type: vertical-stack
+    type: sections
+    max_columns: 3
+    sections:
+      # =====================================================================
+      # COLUMN 1 — Deepthroat Trainer
+      # =====================================================================
+
+      - type: grid
         cards:
-          - type: markdown
-            content: "## Deepthroat Trainer"
+          - type: heading
+            heading: Deepthroat Trainer
+            icon: mdi:dumbbell
           - type: horizontal-stack
             cards:
               - type: entity
@@ -50,12 +56,20 @@ views:
               - type: entity
                 entity: sensor.deepthroat_trainer_segment_pass_rate
                 name: Pass Rate
+          - type: entities
+            entities:
+              - entity: sensor.deepthroat_trainer_last_seen
+                name: Last Seen
 
-      # --- Lockbox Quick Status ---
-      - type: vertical-stack
+      # =====================================================================
+      # COLUMN 2 — Lockbox
+      # =====================================================================
+
+      - type: grid
         cards:
-          - type: markdown
-            content: "## Lockbox"
+          - type: heading
+            heading: Lockbox
+            icon: mdi:lock
           - type: horizontal-stack
             cards:
               - type: entity
@@ -86,12 +100,18 @@ views:
                 name: DTT Integration
               - entity: sensor.lockbox_shame_enabled
                 name: Shame Mode
+              - entity: sensor.lockbox_last_seen
+                name: Last Seen
 
-      # --- OSSM Quick Status ---
-      - type: vertical-stack
+      # =====================================================================
+      # COLUMN 3 — OSSM & History
+      # =====================================================================
+
+      - type: grid
         cards:
-          - type: markdown
-            content: "## OSSM"
+          - type: heading
+            heading: OSSM
+            icon: mdi:engine
           - type: horizontal-stack
             cards:
               - type: entity
@@ -109,23 +129,15 @@ views:
               - entity: sensor.ossm_last_seen
                 name: Last Seen
 
-      # --- Recent Activity ---
-      - type: history-graph
-        title: Recent Session Grades
-        hours_to_show: 168
-        entities:
-          - entity: sensor.deepthroat_trainer_latest_session_grade
-            name: Grade %
-          - entity: sensor.deepthroat_trainer_latest_session_points
-            name: Points
-
-      # --- Device Status ---
-      - type: entities
-        title: Device Status
-        entities:
-          - entity: sensor.deepthroat_trainer_last_seen
-            name: DTT Last Seen
-          - entity: sensor.lockbox_last_seen
-            name: Lockbox Last Seen
-          - entity: sensor.ossm_last_seen
-            name: OSSM Last Seen
+          # --- Recent Activity ---
+          - type: heading
+            heading: Recent Activity
+            icon: mdi:chart-line
+          - type: history-graph
+            title: Session Grades
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_latest_session_grade
+                name: Grade %
+              - entity: sensor.deepthroat_trainer_latest_session_points
+                name: Points
