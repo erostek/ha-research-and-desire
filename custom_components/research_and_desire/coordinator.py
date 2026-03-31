@@ -138,6 +138,18 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
             fallback=prev_dtt.active_template if prev_dtt else None,
         )
 
+        # Log full API shapes once for sensor development
+        if self._first_poll or not prev:
+            _LOGGER.warning(
+                "DTT API discovery — device_info: %s", raw_dtt_devices
+            )
+            _LOGGER.warning(
+                "DTT API discovery — latest_session: %s", latest_session
+            )
+            _LOGGER.warning(
+                "DTT API discovery — active_template: %s", active_template
+            )
+
         _LOGGER.debug(
             "Poll: dtt_devices=%d, session=%s, template=%s",
             len(dtt_devices),
@@ -281,6 +293,26 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
                 self.client.async_get_lkbx_templates_active(),
                 fallback=prev_lkbx.active_template if prev_lkbx else None,
             )
+
+            # Log full API shapes once for sensor development
+            if self._first_poll or not prev:
+                _LOGGER.warning(
+                    "LKBX API discovery — device_info: %s", raw_lkbx_devices
+                )
+                _LOGGER.warning(
+                    "LKBX API discovery — active_template: %s", lkbx_active_template
+                )
+                _LOGGER.warning(
+                    "LKBX API discovery — latest_session: %s", lkbx_latest_session
+                )
+                _LOGGER.warning(
+                    "LKBX API discovery — sessions[0]: %s",
+                    lkbx_sessions[0] if isinstance(lkbx_sessions, list) and lkbx_sessions else None,
+                )
+                _LOGGER.warning(
+                    "LKBX API discovery — templates[0]: %s",
+                    lkbx_templates[0] if isinstance(lkbx_templates, list) and lkbx_templates else None,
+                )
 
             for dev_id, dev_data in lkbx_devices.items():
                 dev_data.sessions = (
