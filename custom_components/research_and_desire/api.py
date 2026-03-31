@@ -196,11 +196,15 @@ class ResearchAndDesireApiClient:
     async def async_get_lkbx_templates_active(self) -> dict[str, Any] | None:
         """Get the currently active Lockbox template.
 
-        The API returns {"data": null, "message": "no active lock"} when
-        no lock is active, which our _request method translates to None.
+        The API returns {"ok": true, "data": {"data": null, "message": "no active lock"}}
+        when no lock is active.  After envelope unwrap we get the inner dict,
+        which must not be mistaken for a real template.
         """
         result = await self._request("GET", "/lkbx/templates/active")
         if result is None:
+            return None
+        # Inner "no active lock" response: {data: null, message: "..."}
+        if isinstance(result, dict) and result.get("data") is None and "message" in result:
             return None
         return result
 
