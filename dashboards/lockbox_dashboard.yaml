@@ -40,6 +40,18 @@ views:
           style: |
             ha-card { background-color: #1b5e20; color: white; text-align: center; }
 
+      # --- Controls ---
+      - type: entities
+        title: Controls
+        icon: mdi:tune
+        entities:
+          - entity: lock.lockbox_lock
+            name: Lock
+          - entity: select.lockbox_lock_template
+            name: Lock Template
+          - entity: number.lockbox_lock_duration
+            name: Duration (modify)
+
       # --- Lock Status Entity ---
       - type: entity
         entity: sensor.lockbox_lock_status
@@ -62,6 +74,20 @@ views:
           - entity: sensor.lockbox_random_duration
             name: Random Duration
 
+      # --- Lock Session ---
+      - type: entities
+        title: Lock Session
+        icon: mdi:timer-sand
+        entities:
+          - entity: sensor.lockbox_lock_state
+            name: State
+          - entity: sensor.lockbox_lock_start_time
+            name: Started
+          - entity: sensor.lockbox_lock_end_time
+            name: Ends
+          - entity: sensor.lockbox_time_remaining
+            name: Time Remaining
+
       # --- Lock Settings ---
       - type: entities
         title: Lock Settings
@@ -75,6 +101,8 @@ views:
             name: Max Break
           - entity: sensor.lockbox_break_penalty
             name: Break Penalty
+          - entity: sensor.lockbox_keyholder_only_breaks
+            name: Keyholder-Only Breaks
           - entity: sensor.lockbox_emergency_unlock
             name: Emergency Unlock
           - entity: sensor.lockbox_time_displayed
@@ -91,6 +119,8 @@ views:
             name: DTT Time Reduction
           - entity: sensor.lockbox_shame_enabled
             name: Shame Mode
+          - entity: sensor.lockbox_shame_time_penalty
+            name: Shame Time Penalty
           - entity: sensor.lockbox_publicly_listed
             name: Publicly Listed
           - entity: sensor.lockbox_test_lock

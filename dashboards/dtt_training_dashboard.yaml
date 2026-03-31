@@ -21,6 +21,20 @@ views:
           # Deepthroat Trainer
           Real-time training data from Research and Desire
 
+      # --- Controls ---
+      - type: entities
+        title: Controls
+        icon: mdi:tune
+        entities:
+          - entity: select.deepthroat_trainer_active_template
+            name: Active Template
+          - entity: number.deepthroat_trainer_target_depth
+            name: Target Depth
+          - entity: number.deepthroat_trainer_target_window
+            name: Target Window
+          - entity: switch.deepthroat_trainer_hands_free_mode
+            name: Hands-Free Mode
+
       # --- Session Status Row ---
       - type: horizontal-stack
         cards:
@@ -81,6 +95,18 @@ views:
             name: Pass Rate
             icon: mdi:chart-donut
 
+      # --- Passed / Failed Segments ---
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.deepthroat_trainer_passed_segments
+            name: Passed
+            icon: mdi:check-circle-outline
+          - type: entity
+            entity: sensor.deepthroat_trainer_failed_segments
+            name: Failed
+            icon: mdi:close-circle-outline
+
       # --- Performance Metrics ---
       - type: horizontal-stack
         cards:
@@ -96,6 +122,22 @@ views:
             entity: sensor.deepthroat_trainer_longest_deepthroat
             name: Longest DT
             icon: mdi:arrow-expand-vertical
+
+      # --- Performance Metrics (continued) ---
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.deepthroat_trainer_session_distance
+            name: Distance
+            icon: mdi:map-marker-distance
+          - type: entity
+            entity: sensor.deepthroat_trainer_avg_stroke_length
+            name: Stroke Length
+            icon: mdi:ruler
+          - type: entity
+            entity: sensor.deepthroat_trainer_max_speed
+            name: Max Speed
+            icon: mdi:speedometer-medium
 
       # --- Active Template ---
       - type: entities
@@ -118,6 +160,14 @@ views:
             name: Hands-Free
           - entity: sensor.deepthroat_trainer_template_segments
             name: Template Segments
+          - entity: sensor.deepthroat_trainer_pass_threshold
+            name: Pass Threshold
+          - entity: sensor.deepthroat_trainer_template_total_duration
+            name: Total Duration
+          - entity: sensor.deepthroat_trainer_failure_text
+            name: Failure Text
+          - entity: sensor.deepthroat_trainer_template_updated
+            name: Last Updated
 
       # --- Device Info ---
       - type: entities

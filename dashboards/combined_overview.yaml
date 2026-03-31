@@ -1,7 +1,7 @@
 ###############################################################################
 # R&D Combined Overview Dashboard
 #
-# Shows all Research and Desire devices at a glance: DTT + Lockbox
+# Shows all Research and Desire devices at a glance: DTT + Lockbox + OSSM
 #
 # How to use:
 # 1. Go to Settings > Dashboards > Add Dashboard
@@ -68,6 +68,16 @@ views:
               - type: entity
                 entity: sensor.lockbox_lock_duration
                 name: Duration
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.lockbox_lock_state
+                name: Lock State
+                icon: mdi:lock-clock
+              - type: entity
+                entity: sensor.lockbox_time_remaining
+                name: Remaining
+                icon: mdi:timer-sand
           - type: entities
             entities:
               - entity: sensor.lockbox_breaks_enabled
@@ -76,6 +86,28 @@ views:
                 name: DTT Integration
               - entity: sensor.lockbox_shame_enabled
                 name: Shame Mode
+
+      # --- OSSM Quick Status ---
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: "## OSSM"
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.ossm_session_count
+                name: Sessions
+                icon: mdi:counter
+              - type: entity
+                entity: sensor.ossm_pattern_count
+                name: Patterns
+                icon: mdi:wave
+          - type: entities
+            entities:
+              - entity: sensor.ossm_firmware_version
+                name: Firmware
+              - entity: sensor.ossm_last_seen
+                name: Last Seen
 
       # --- Recent Activity ---
       - type: history-graph
@@ -95,3 +127,5 @@ views:
             name: DTT Last Seen
           - entity: sensor.lockbox_last_seen
             name: Lockbox Last Seen
+          - entity: sensor.ossm_last_seen
+            name: OSSM Last Seen

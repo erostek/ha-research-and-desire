@@ -7,10 +7,10 @@ Custom Home Assistant integration for [Research and Desire](https://researchandd
 
 ## Features
 
-- **Deepthroat Trainer** — 23 sensors + 1 event entity covering session results, training template details, and device info
-- **Lockbox** — 10 sensors for lock status, active lock settings, break/shame/emergency configuration
+- **Deepthroat Trainer** — 33 sensors + 1 event + 3 controls (select, 2 numbers, switch) covering session results, training template details, and device info
+- **Lockbox** — 27 sensors + 1 event + 1 lock + 2 controls (select, number) for lock status, lock session timing, active lock settings, break/shame/emergency configuration
 - **OSSM** — 4 sensors (stub, ready for when a device is connected)
-- **Event Entity** — fires `session_passed`, `session_failed`, or `session_completed` events for DTT sessions
+- **Event Entities** — DTT fires `session_passed`/`session_failed`/`session_completed`; Lockbox fires `lockbox_locked`/`lockbox_unlocked`
 - **Blueprints** — ready-to-import automation blueprints for common use cases
 - **Cloud Polling** — polls the API every 60 seconds
 - **No extra dependencies** — uses Home Assistant's built-in aiohttp session
@@ -85,8 +85,19 @@ Or manually:
 | Passed Segments | Number of passed segments |
 | Failed Segments | Number of failed segments |
 | Segment Pass Rate | Percentage of segments passed (%) |
+| Pass Threshold | Average pass grade threshold across template segments (%) |
+| Template Total Duration | Total template duration including repeats (seconds) |
+| Failure Text | First failure text from template segments |
+| Template Updated | Template last-modified timestamp |
 
 **Event entity:** `Session Completed` — fires `session_passed`, `session_failed`, or `session_completed` with data including `session_id`, `passed`, `total_points`, `average_grade`, `segment_count`, `created_at`.
+
+| Control | Type | Description |
+|---------|------|-------------|
+| Active Template | select | Choose the active training template |
+| Target Depth | number | Set target depth (1–100 mm, step 0.5) |
+| Target Window | number | Set target window tolerance (0.1–50 mm, step 0.1) |
+| Hands-Free Mode | switch | Toggle hands-free mode on/off |
 
 ### Lockbox (LKBX)
 
@@ -111,8 +122,22 @@ Or manually:
 | Random Duration | Whether lock duration is randomized |
 | Time Displayed | Whether remaining time is shown |
 | Publicly Listed | Whether the lock is publicly listed |
+| Shame Time Penalty | Time added when shame is triggered (seconds) |
+| Keyholder-Only Breaks | Whether breaks require keyholder approval |
 | Template Count | Number of lock templates |
 | Session Count | Number of lock sessions |
+| Lock State | Active lock session state (pending/locked/completed/abandoned/break) |
+| Lock Start Time | When the active lock session started |
+| Lock End Time | When the active lock session ends |
+| Time Remaining | Seconds remaining in the active lock session |
+
+**Event entity:** `Lock State` — fires `lockbox_locked` or `lockbox_unlocked` with data including `lock_name`, `duration`, `is_random_duration`, `min_duration`, `max_duration`, `is_test_lock` (locked events only).
+
+| Control | Type | Description |
+|---------|------|-------------|
+| Lock | lock | Lock/unlock the Lockbox |
+| Lock Template | select | Choose which template to use for the next lock |
+| Lock Duration | number | Modify the active lock session duration (60–2,592,000 s) |
 
 ### OSSM
 
