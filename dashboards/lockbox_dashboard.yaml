@@ -18,7 +18,7 @@ views:
     max_columns: 3
     sections:
       # =====================================================================
-      # COLUMN 1 — Status & Controls
+      # COLUMN 1 — Status, Controls & Session
       # =====================================================================
 
       - type: grid
@@ -76,6 +76,37 @@ views:
               - entity: sensor.lockbox_time_remaining
                 name: Time Remaining
 
+          # --- Session Gauge ---
+          - type: gauge
+            entity: sensor.lockbox_time_remaining
+            name: Time Remaining
+            min: 0
+            max: 86400
+            severity:
+              green: 0
+              yellow: 21600
+              red: 43200
+            needle: true
+
+          # --- Lock Status History ---
+          - type: heading
+            heading: History
+            icon: mdi:chart-line
+          - type: history-graph
+            title: Lock Status
+            hours_to_show: 168
+            entities:
+              - entity: sensor.lockbox_lock_status
+                name: Status
+              - entity: sensor.lockbox_lock_state
+                name: Lock State
+          - type: history-graph
+            title: Time Remaining
+            hours_to_show: 168
+            entities:
+              - entity: sensor.lockbox_time_remaining
+                name: Remaining
+
       # =====================================================================
       # COLUMN 2 — Lock Configuration
       # =====================================================================
@@ -113,6 +144,31 @@ views:
                 name: Break Penalty
               - entity: sensor.lockbox_keyholder_only_breaks
                 name: Keyholder-Only Breaks
+
+          # --- Duration History ---
+          - type: heading
+            heading: Duration Trends
+            icon: mdi:chart-timeline-variant
+          - type: history-graph
+            title: Lock Duration
+            hours_to_show: 168
+            entities:
+              - entity: sensor.lockbox_lock_duration
+                name: Duration
+              - entity: sensor.lockbox_min_lock_duration
+                name: Min
+              - entity: sensor.lockbox_max_lock_duration
+                name: Max
+          - type: history-graph
+            title: Break Settings
+            hours_to_show: 168
+            entities:
+              - entity: sensor.lockbox_break_regularity
+                name: Break Every
+              - entity: sensor.lockbox_break_penalty
+                name: Penalty
+              - entity: sensor.lockbox_max_break_duration
+                name: Max Break
 
       # =====================================================================
       # COLUMN 3 — Features & Device
@@ -157,3 +213,24 @@ views:
                 name: Templates
               - entity: sensor.lockbox_session_count
                 name: Sessions
+
+          # --- Session Activity ---
+          - type: heading
+            heading: Activity
+            icon: mdi:chart-bar
+          - type: history-graph
+            title: Sessions & Templates
+            hours_to_show: 168
+            entities:
+              - entity: sensor.lockbox_session_count
+                name: Sessions
+              - entity: sensor.lockbox_template_count
+                name: Templates
+          - type: history-graph
+            title: Shame & DTT Reduction
+            hours_to_show: 168
+            entities:
+              - entity: sensor.lockbox_shame_time_penalty
+                name: Shame Penalty
+              - entity: sensor.lockbox_dtt_time_reduction
+                name: DTT Reduction

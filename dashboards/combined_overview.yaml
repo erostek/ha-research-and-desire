@@ -38,6 +38,8 @@ views:
               - type: entity
                 entity: sensor.deepthroat_trainer_latest_session_points
                 name: Points
+
+          # --- Gauges ---
           - type: gauge
             entity: sensor.deepthroat_trainer_latest_session_grade
             name: Session Grade
@@ -50,16 +52,53 @@ views:
             needle: true
           - type: horizontal-stack
             cards:
+              - type: gauge
+                entity: sensor.deepthroat_trainer_segment_pass_rate
+                name: Pass Rate
+                min: 0
+                max: 100
+                severity:
+                  green: 80
+                  yellow: 50
+                  red: 0
+                needle: true
+              - type: gauge
+                entity: sensor.deepthroat_trainer_best_segment_grade
+                name: Best Grade
+                min: 0
+                max: 100
+                severity:
+                  green: 80
+                  yellow: 60
+                  red: 0
+                needle: true
+
+          - type: horizontal-stack
+            cards:
               - type: entity
                 entity: sensor.deepthroat_trainer_active_template
                 name: Template
               - type: entity
-                entity: sensor.deepthroat_trainer_segment_pass_rate
-                name: Pass Rate
-          - type: entities
-            entities:
-              - entity: sensor.deepthroat_trainer_last_seen
+                entity: sensor.deepthroat_trainer_last_seen
                 name: Last Seen
+
+          # --- DTT History ---
+          - type: history-graph
+            title: Grade & Pass Rate
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_latest_session_grade
+                name: Grade
+              - entity: sensor.deepthroat_trainer_segment_pass_rate
+                name: Pass Rate
+          - type: history-graph
+            title: Points & Reps
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_latest_session_points
+                name: Points
+              - entity: sensor.deepthroat_trainer_session_total_reps
+                name: Reps
 
       # =====================================================================
       # COLUMN 2 — Lockbox
@@ -92,6 +131,19 @@ views:
                 entity: sensor.lockbox_time_remaining
                 name: Remaining
                 icon: mdi:timer-sand
+
+          # --- Lockbox Gauge ---
+          - type: gauge
+            entity: sensor.lockbox_time_remaining
+            name: Time Remaining
+            min: 0
+            max: 86400
+            severity:
+              green: 0
+              yellow: 21600
+              red: 43200
+            needle: true
+
           - type: entities
             entities:
               - entity: sensor.lockbox_breaks_enabled
@@ -103,8 +155,24 @@ views:
               - entity: sensor.lockbox_last_seen
                 name: Last Seen
 
+          # --- Lockbox History ---
+          - type: history-graph
+            title: Lock Status
+            hours_to_show: 168
+            entities:
+              - entity: sensor.lockbox_lock_status
+                name: Status
+              - entity: sensor.lockbox_lock_state
+                name: Lock State
+          - type: history-graph
+            title: Time Remaining
+            hours_to_show: 168
+            entities:
+              - entity: sensor.lockbox_time_remaining
+                name: Remaining
+
       # =====================================================================
-      # COLUMN 3 — OSSM & History
+      # COLUMN 3 — OSSM & Device Status
       # =====================================================================
 
       - type: grid
@@ -129,15 +197,34 @@ views:
               - entity: sensor.ossm_last_seen
                 name: Last Seen
 
-          # --- Recent Activity ---
+          # --- Device Status ---
           - type: heading
-            heading: Recent Activity
+            heading: All Devices
+            icon: mdi:information
+          - type: entities
+            entities:
+              - entity: sensor.deepthroat_trainer_last_seen
+                name: DTT Last Seen
+              - entity: sensor.lockbox_last_seen
+                name: Lockbox Last Seen
+              - entity: sensor.ossm_last_seen
+                name: OSSM Last Seen
+
+          # --- Combined Activity ---
+          - type: heading
+            heading: Activity
             icon: mdi:chart-line
           - type: history-graph
-            title: Session Grades
+            title: Speed & Performance
             hours_to_show: 168
             entities:
-              - entity: sensor.deepthroat_trainer_latest_session_grade
-                name: Grade %
-              - entity: sensor.deepthroat_trainer_latest_session_points
-                name: Points
+              - entity: sensor.deepthroat_trainer_avg_speed
+                name: Avg Speed
+              - entity: sensor.deepthroat_trainer_max_speed
+                name: Max Speed
+          - type: history-graph
+            title: Session Duration
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_latest_session_duration
+                name: DTT Duration

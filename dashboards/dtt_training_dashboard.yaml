@@ -18,10 +18,9 @@ views:
     max_columns: 3
     sections:
       # =====================================================================
-      # COLUMN 1 — Controls & Template
+      # COLUMN 1 — Controls, Gauges & History
       # =====================================================================
 
-      # --- Controls ---
       - type: grid
         cards:
           - type: heading
@@ -38,7 +37,10 @@ views:
               - entity: switch.deepthroat_trainer_hands_free_mode
                 name: Hands-Free Mode
 
-          # --- Grade Gauge ---
+          # --- Gauges ---
+          - type: heading
+            heading: Session Gauges
+            icon: mdi:gauge
           - type: gauge
             entity: sensor.deepthroat_trainer_latest_session_grade
             name: Session Grade
@@ -49,17 +51,88 @@ views:
               yellow: 60
               red: 0
             needle: true
+          - type: horizontal-stack
+            cards:
+              - type: gauge
+                entity: sensor.deepthroat_trainer_segment_pass_rate
+                name: Pass Rate
+                min: 0
+                max: 100
+                severity:
+                  green: 80
+                  yellow: 50
+                  red: 0
+                needle: true
+              - type: gauge
+                entity: sensor.deepthroat_trainer_best_segment_grade
+                name: Best Grade
+                min: 0
+                max: 100
+                severity:
+                  green: 80
+                  yellow: 60
+                  red: 0
+                needle: true
+          - type: horizontal-stack
+            cards:
+              - type: gauge
+                entity: sensor.deepthroat_trainer_worst_segment_grade
+                name: Worst Grade
+                min: 0
+                max: 100
+                severity:
+                  green: 80
+                  yellow: 60
+                  red: 0
+                needle: true
+              - type: gauge
+                entity: sensor.deepthroat_trainer_pass_threshold
+                name: Pass Threshold
+                min: 0
+                max: 100
+                severity:
+                  green: 80
+                  yellow: 60
+                  red: 0
+                needle: true
 
-          # --- Grade History ---
+          # --- History Charts ---
+          - type: heading
+            heading: History
+            icon: mdi:chart-line
           - type: history-graph
-            title: Grade History
+            title: Grade & Pass Rate
             hours_to_show: 168
             entities:
               - entity: sensor.deepthroat_trainer_latest_session_grade
                 name: Grade
+              - entity: sensor.deepthroat_trainer_segment_pass_rate
+                name: Pass Rate
+              - entity: sensor.deepthroat_trainer_best_segment_grade
+                name: Best Grade
+              - entity: sensor.deepthroat_trainer_worst_segment_grade
+                name: Worst Grade
+          - type: history-graph
+            title: Points & Reps
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_latest_session_points
+                name: Points
+              - entity: sensor.deepthroat_trainer_session_total_reps
+                name: Total Reps
+          - type: history-graph
+            title: Speed & Distance
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_avg_speed
+                name: Avg Speed
+              - entity: sensor.deepthroat_trainer_max_speed
+                name: Max Speed
+              - entity: sensor.deepthroat_trainer_session_distance
+                name: Distance
 
       # =====================================================================
-      # COLUMN 2 — Session Results
+      # COLUMN 2 — Session Results & Performance
       # =====================================================================
 
       - type: grid
@@ -103,20 +176,6 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.deepthroat_trainer_best_segment_grade
-                name: Best Grade
-                icon: mdi:arrow-up-bold
-              - type: entity
-                entity: sensor.deepthroat_trainer_worst_segment_grade
-                name: Worst Grade
-                icon: mdi:arrow-down-bold
-              - type: entity
-                entity: sensor.deepthroat_trainer_segment_pass_rate
-                name: Pass Rate
-                icon: mdi:chart-donut
-          - type: horizontal-stack
-            cards:
-              - type: entity
                 entity: sensor.deepthroat_trainer_passed_segments
                 name: Passed
                 icon: mdi:check-circle-outline
@@ -124,6 +183,10 @@ views:
                 entity: sensor.deepthroat_trainer_failed_segments
                 name: Failed
                 icon: mdi:close-circle-outline
+              - type: entity
+                entity: sensor.deepthroat_trainer_segment_pass_rate
+                name: Pass Rate
+                icon: mdi:chart-donut
 
           # --- Performance Metrics ---
           - type: heading
@@ -157,6 +220,25 @@ views:
                 entity: sensor.deepthroat_trainer_max_speed
                 name: Max Speed
                 icon: mdi:speedometer-medium
+
+          # --- Duration & Reps History ---
+          - type: heading
+            heading: Session Trends
+            icon: mdi:chart-timeline-variant
+          - type: history-graph
+            title: Session Duration
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_latest_session_duration
+                name: Duration
+          - type: history-graph
+            title: Stroke Length & Longest DT
+            hours_to_show: 168
+            entities:
+              - entity: sensor.deepthroat_trainer_avg_stroke_length
+                name: Stroke Length
+              - entity: sensor.deepthroat_trainer_longest_deepthroat
+                name: Longest DT
 
       # =====================================================================
       # COLUMN 3 — Template Details & Device
