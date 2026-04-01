@@ -65,6 +65,11 @@ class ResearchAndDesireData:
 class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData]):
     """Coordinator that polls the Research and Desire API."""
 
+    # Require this many consecutive update cycles with auth failures before
+    # raising ConfigEntryAuthFailed.  Transient 401s (API hiccups, rate limits)
+    # will be absorbed — only sustained auth failure triggers re-auth.
+    AUTH_FAIL_THRESHOLD = 3
+
     def __init__(self, hass: HomeAssistant, client: ResearchAndDesireApiClient) -> None:
         super().__init__(
             hass,
@@ -76,12 +81,37 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
         self._last_session_id: int | None = None
         self._first_poll = True
         self._last_lkbx_locked: bool | None = None  # Track lock state transitions
+        self._consecutive_auth_failures: int = 0
+        self._auth_failed_this_cycle: bool = False
 
     async def _async_update_data(self) -> ResearchAndDesireData:
         """Fetch data from the API sequentially."""
+        self._auth_failed_this_cycle = False
         try:
-            return await self._do_update()
-        except (ConfigEntryAuthFailed, UpdateFailed):
+            result = await self._do_update()
+            if self._auth_failed_this_cycle:
+                self._consecutive_auth_failures += 1
+                _LOGGER.warning(
+                    "Auth failure during update (%d/%d before re-auth)",
+                    self._consecutive_auth_failures,
+                    self.AUTH_FAIL_THRESHOLD,
+                )
+                if self._consecutive_auth_failures >= self.AUTH_FAIL_THRESHOLD:
+                    raise ConfigEntryAuthFailed(
+                        f"Authentication failed {self._consecutive_auth_failures} "
+                        f"consecutive times"
+                    )
+            else:
+                if self._consecutive_auth_failures > 0:
+                    _LOGGER.info(
+                        "API auth recovered after %d failure(s)",
+                        self._consecutive_auth_failures,
+                    )
+                self._consecutive_auth_failures = 0
+            return result
+        except ConfigEntryAuthFailed:
+            raise
+        except UpdateFailed:
             raise
         except Exception as err:
             # Catch unexpected errors to prevent the coordinator from dying
@@ -91,12 +121,19 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
             raise UpdateFailed(f"Unexpected error: {err}") from err
 
     async def _safe_fetch(self, coro, fallback=None):
-        """Execute an API coroutine with standard error handling."""
+        """Execute an API coroutine with standard error handling.
+
+        Auth errors are absorbed and flagged rather than immediately fatal.
+        The update cycle will raise ConfigEntryAuthFailed only after
+        AUTH_FAIL_THRESHOLD consecutive cycles with auth failures.
+        """
         try:
             result = await coro
             return result
         except AuthenticationError as err:
-            raise ConfigEntryAuthFailed(str(err)) from err
+            self._auth_failed_this_cycle = True
+            _LOGGER.warning("Auth error (will retry): %s", err)
+            return fallback
         except ApiError as err:
             _LOGGER.warning("API call failed: %s", err)
             return fallback
@@ -341,7 +378,9 @@ class ResearchAndDesireCoordinator(DataUpdateCoordinator[ResearchAndDesireData])
                 _LOGGER.warning("Session detail for %s returned empty", session_id)
             return detail
         except AuthenticationError as err:
-            raise ConfigEntryAuthFailed(str(err)) from err
+            self._auth_failed_this_cycle = True
+            _LOGGER.warning("Auth error fetching session detail: %s", err)
+            return None
         except ApiError as err:
             _LOGGER.warning("Could not fetch session detail %s: %s", session_id, err)
             return None
